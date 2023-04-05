@@ -4,10 +4,10 @@
 - [distributed-walker] (formerly `l2r-benchmarks -> distributed-mcar branch`)
 - [distributed-l2r] (formerly `l2r-benchmarks -> distributed-worker branch`)
 - [sequential-l2r] (formerly `l2r-lab -> phoebe branch`)
-
+- [sequential-walker]
 
 ## Bug fixes
-### l2r-deployment.yaml
+### l2r-distributed.yaml
 1. Prepended `apt-get update` for worker-pods' command
 2. Replaced `worker.py` and `learner.py` with `distributedworker.py` and `distributedserver.py` respectively for worker-pods and learner-pod
 3. Added `tensorboardX` to the installation command for learner-pod
