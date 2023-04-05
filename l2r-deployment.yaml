@@ -63,7 +63,7 @@ spec:
       command: # gonna have to make this smarter
         - /bin/bash
         - -c
-        - pip3 install git+https://github.com/learn-to-race/l2r.git@aicrowd-environment tianshou gym strictyaml wandb tensorboardX && git clone https://github.com/BrandonBian/l2r && cd "$(\ls -1dt ./*/ | head -n 1)" && git checkout distributed-worker && python3 distributedserver.py 173e38ab5f2f2d96c260f57c989b4d068b64fb8a
+        - pip3 install git+https://github.com/learn-to-race/l2r.git@aicrowd-environment tianshou gym strictyaml wandb tensorboardX && git clone https://github.com/BrandonBian/l2r && cd "$(\ls -1dt ./*/ | head -n 1)" && git checkout distributed-l2r && python3 distributedserver.py 173e38ab5f2f2d96c260f57c989b4d068b64fb8a
 
       ports:
       - name: learner-port

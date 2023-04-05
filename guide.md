@@ -30,18 +30,18 @@ python3 server.py 173e38ab5f2f2d96c260f57c989b4d068b64fb8a
 self.wandb_logger = WanDBLogger(api_key=api_key, project_name="test-project")
 ```
 
-## Running L2R with ArrivalSim - in Phoebe kubernetes pods
+## Running Sequential (non-distributed) L2R with ArrivalSim - in Phoebe kubernetes pods
 ```bash
-# Start kubernetes worker pod
-# > Comment out the "command" section in "worker-pods" of the file "l2r-deployment.yaml", so that we start from a fresh environment
-kubectl create -f l2r-deployment.yaml
+# Start kubernetes worker pod (fresh GPU environment)
+# Note: l2r-sequential.yaml is similar to l2r-deployment.yaml, but with "command" section commented out and removing learner pods
+kubectl create -f l2r-sequential.yaml
 
 # Enter into the worker-pod
 kuebctl exec -it <worker-pod-name> -- /bin/bash
 
 # Clone repo
-git clone https://github.com/BrandonBian/learn-to-race.git
-cd learn-to-race
+git clone https://github.com/BrandonBian/l2r
+cd l2r
 
 # Install L2R framework
 pip install git+https://github.com/learn-to-race/l2r@aicrowd-environment

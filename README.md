@@ -9,7 +9,7 @@
 ## Bug fixes
 ### l2r-deployment.yaml
 1. Prepended `apt-get update` for worker-pods' command
-2. Replaced `worker.py` and `learner.py` with `distributedworker.py` and `distributedlearner.py` respectively for worker-pods and learner-pod
+2. Replaced `worker.py` and `learner.py` with `distributedworker.py` and `distributedserver.py` respectively for worker-pods and learner-pod
 3. Added `tensorboardX` to the installation command for learner-pod
 
 ### [distributed-walker] branch
