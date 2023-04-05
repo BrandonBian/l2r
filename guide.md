@@ -42,6 +42,7 @@ kuebctl exec -it <worker-pod-name> -- /bin/bash
 # Clone repo
 git clone https://github.com/BrandonBian/l2r
 cd l2r
+git checkout sequential-l2r
 
 # Install L2R framework
 pip install git+https://github.com/learn-to-race/l2r@aicrowd-environment
@@ -57,6 +58,6 @@ cd LinuxNoEditor/
 sudo -u ubuntu ./ArrivalSim.sh -OpenGL
 
 # Run the script (on another terminal in the same worker pod)
-cd learn-to-race/
+cd l2r/
 python3 -m scripts.main
 ```
