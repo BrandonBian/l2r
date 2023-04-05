@@ -33,15 +33,15 @@ self.wandb_logger = WanDBLogger(api_key=api_key, project_name="test-project")
 ## Running Sequential (non-distributed) L2R with ArrivalSim - in Phoebe kubernetes pods
 ```bash
 # Start kubernetes worker pod (fresh GPU environment)
-# Note: l2r-sequential.yaml is similar to l2r-deployment.yaml, but with "command" section commented out and removing learner pods
 kubectl create -f l2r-sequential.yaml
 
-# Enter into the worker-pod
-kuebctl exec -it <worker-pod-name> -- /bin/bash
+##############################################
+# - Commands automatically ran upon launch - #
+##############################################
 
 # Clone repo
 git clone https://github.com/BrandonBian/l2r
-cd l2r
+cd l2r/
 git checkout sequential-l2r
 
 # Install L2R framework
@@ -52,6 +52,15 @@ pip install -r setup/devtools_reqs.txt
 
 # Resolve CV2 (OpenCV) circuar import issue
 pip install "opencv-python-headless<4.3"
+
+# Sleep indefinitely until user enters and manually executes
+
+#################################################################
+# - Wait until finish, then enter into pod to launch programs - #
+#################################################################
+
+# Enter into the worker-pod
+kuebctl exec -it <worker-pod-name> -- /bin/bash
 
 # Start ArrivalSim
 cd LinuxNoEditor/

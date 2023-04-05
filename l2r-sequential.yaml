@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: ReplicaSet
 metadata:
-  name: worker-pods-sequential
+  name: l2r-sequential
   labels:
     tier: worker-set
 spec:
@@ -36,11 +36,16 @@ spec:
           - name: CUDA_VISIBLE_DEVICES
             value: "0" # has to match the above
         image: docker.pdl.cmu.edu/l2r2022:latest
+        command:
+          - /bin/bash
+          - -c
+          - apt-get update && git clone https://github.com/BrandonBian/l2r && cd l2r && git checkout sequential-l2r && pip install git+https://github.com/learn-to-race/l2r@aicrowd-environment && pip install -r setup/devtools_reqs.txt && pip install "opencv-python-headless<4.3" && sleep infinity
+
 --- 
 apiVersion: v1
 kind: Service
 metadata:
-  name: learner-service-sequential
+  name: l2r-service-sequential
 spec:
   selector:
     app.kubernetes.io/name: proxy
