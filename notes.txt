@@ -1,0 +1,15 @@
+--- Installation From Scratch ---
+(UBUNTU = Ubuntu 18.04 LTS)
+(Python = 3.8)
+(PyTorch = 1.13.1)
+(CUDA = 11.6)
+
+conda install -c conda-forge wandb
+conda install -c conda-forge strictyaml
+conda install -c conda-forge tensorboardx
+conda install -c conda-forge jsonpickle
+conda install -c conda-forge opencv
+
+--- Running ---
+sudo -E /home/brandon/.conda/envs/l2r/bin/python -m scripts.main
+
