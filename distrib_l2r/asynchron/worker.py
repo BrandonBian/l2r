@@ -95,7 +95,7 @@ class AsnycWorker:
         self.runner = create_configurable(
             "config_files/async_sac_mountaincar/worker.yaml", NameToSourcePath.runner
         )
-        # print(self.env.action_space)
+        print("Action Space == ", self.env.action_space)
 
     def work(self) -> None:
         """Continously collect data"""
