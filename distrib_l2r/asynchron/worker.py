@@ -104,6 +104,7 @@ class AsnycWorker:
         logging.info("Sending init message to establish connection")
         response = send_data(data=InitMsg(), addr=self.learner_address, reply=True)
         policy_id, policy = response.data["policy_id"], response.data["policy"]
+        logging.info("Finish init message, start true communication")
 
         while True:
             buffer, result = self.collect_data(policy_weights=policy, is_train=is_train)
