@@ -117,6 +117,8 @@ class SACAgent(BaseAgent):
                 # In case the selected action is a scalar
                 print("catch!")
                 a = np.array([a])
+            if a.shape == ():
+                print("catch shape!")
             action_obj.action = a
             print("act: ", action_obj.action)
             self.record["transition_actor"] = "learner"
