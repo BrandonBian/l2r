@@ -45,6 +45,8 @@ class WorkerRunner(BaseRunner):
         state_encoded, info = env.reset()
         state_encoded = torch.Tensor(state_encoded)
 
+        print("(WorkerRunner.py) state_encoded.shape ==", state_encoded.shape)
+
         ep_ret = 0
         self.replay_buffer = create_configurable(
             self.buffer_config_path, NameToSourcePath.buffer
@@ -53,7 +55,7 @@ class WorkerRunner(BaseRunner):
             t += 1
             self.agent.deterministic = not is_train
             action_obj = self.agent.select_action(state_encoded)
-            print("action_obj.action.shape ==", action_obj.action.shape)
+            print("(WorkerRunner.py) action_obj.action.shape ==", action_obj.action.shape)
             next_state_encoded, reward, done, terminated, _= env.step(action_obj.action[0])
             
             # print(f'info{info}')
