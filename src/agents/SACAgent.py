@@ -79,14 +79,16 @@ class SACAgent(BaseAgent):
 
         self.record = {"transition_actor": ""}
 
-        self.action_space = Box(-1, 1, (4,))
-        self.act_dim = self.action_space.shape[0]
-        self.obs_dim = 32
-        self.target_entropy = -np.prod(self.action_space.shape).astype(np.float32)
         self.actor_critic = create_configurable(
             actor_critic_cfg, NameToSourcePath.network
         )
         self.actor_critic.to(DEVICE)
+
+        self.action_space = Box(-1, 1, (self.actor_critic.action_dim,))
+        self.act_dim = self.action_space.shape[0]
+        self.obs_dim = 32
+        self.target_entropy = -np.prod(self.action_space.shape).astype(np.float32)
+
         if self.checkpoint and self.load_checkpoint:
             self.load_model(self.checkpoint)
 
