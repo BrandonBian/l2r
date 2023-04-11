@@ -18,3 +18,18 @@
 ### [distributed-l2r] branch
 1. Moved `distributedworker.py` and `distributedlearner.py` from `./scripts/` to `root`
 2. `./src/config/schema.py` missing fields from `config_files/async_sac/agent.yaml`
+
+### [distributed-mcar] branch (mountain car continuous)
+1. Change the default action space from `self.action_space = Box(-1, 1, (4,))` to `self.action_space = Box(-1, 1, (self.actor_critic.action_dim,))` in `src/agents/SACAgent.py`
+2. Add `self.action_dim = action_dim` to `class ActorCritic(nn.Module)` in `src/networks/critic.py`, so that the above command can work
+3. Add the checking of action being a scalar in `select_action()` in `src/agents/SACAgents.py`
+```python
+def select_action(self, obs):
+    ...
+    a = self.actor_critic.act(obs.to(DEVICE), self.deterministic)
+    if a.shape == ():
+        # In case a in a scalar
+        a = np.array([a])
+    action_obj.action = a
+    ...
+```
