@@ -85,8 +85,6 @@ class SACAgent(BaseAgent):
         self.actor_critic.to(DEVICE)
 
         self.action_space = Box(-1, 1, (self.actor_critic.action_dim,))
-        self.act_dim = self.action_space.shape[0]
-        self.obs_dim = 32
         self.target_entropy = -np.prod(self.action_space.shape).astype(np.float32)
 
         if self.checkpoint and self.load_checkpoint:
@@ -117,12 +115,12 @@ class SACAgent(BaseAgent):
             a = self.actor_critic.act(obs.to(DEVICE), self.deterministic)
             a = a  # numpy array...
             action_obj.action = a
-            #print(action_obj.action)
+            print(action_obj.action)
             self.record["transition_actor"] = "learner"
         else:
             a = self.action_space.sample()
             action_obj.action = a
-            #print(action_obj.action)
+            print(action_obj.action)
             self.record["transition_actor"] = "random"
         self.t = self.t + 1
         return action_obj
