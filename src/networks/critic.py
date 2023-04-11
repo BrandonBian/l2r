@@ -301,7 +301,10 @@ class ActorCritic(nn.Module):
                     dim=-1,
                 )
             a, _ = self.policy(feat, deterministic, False)
-            a = a.squeeze(0)
+            if a.ndim == 0:
+                a = a.unsqueeze(0)
+            else:
+                a = a.squeeze(0)
         return a.numpy() if a.device == "cpu" else a.cpu().numpy()
 
 

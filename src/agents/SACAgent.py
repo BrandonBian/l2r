@@ -115,14 +115,15 @@ class SACAgent(BaseAgent):
             a = self.actor_critic.act(obs.to(DEVICE), self.deterministic)
             if isinstance(a, (int, float)):
                 # In case the selected action is a scalar
+                print("catch!")
                 a = np.array([a])
             action_obj.action = a
-            print(action_obj.action)
+            print("act: ", action_obj.action)
             self.record["transition_actor"] = "learner"
         else:
             a = self.action_space.sample()
             action_obj.action = a
-            print(action_obj.action)
+            print("random: ", action_obj.action)
             self.record["transition_actor"] = "random"
         self.t = self.t + 1
         return action_obj
