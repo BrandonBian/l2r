@@ -113,7 +113,7 @@ class SACAgent(BaseAgent):
         action_obj = ActionSample()
         if self.t > self.steps_to_sample_randomly:
             a = self.actor_critic.act(obs.to(DEVICE), self.deterministic)
-            if not isinstance(a, np.ndarray):
+            if isinstance(a, (int, float)):
                 # In case the selected action is a scalar
                 a = np.array([a])
             action_obj.action = a
