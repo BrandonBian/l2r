@@ -118,8 +118,10 @@ class SACAgent(BaseAgent):
                 print("catch!")
                 a = np.array([a])
             if a.shape == ():
-                print("catch shape!")
+                print("catch a shape!")
             action_obj.action = a
+            if action_obj.action.shape == ():
+                print("catch action_obj shape!")
             print("act: ", action_obj.action)
             self.record["transition_actor"] = "learner"
         else:
