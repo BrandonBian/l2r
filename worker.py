@@ -21,7 +21,7 @@ if __name__ == "__main__":
         learner_ip = socket.gethostbyname("walker-learner-service")
         learner_address = (learner_ip, 4444)
         worker = AsnycWorker(learner_address=learner_address)
-    else if agent_name == "mountain-car":
+    elif agent_name == "mountain-car":
         learner_ip = socket.gethostbyname("mcar-learner-service")
         learner_address = (learner_ip, 4444)
         worker = AsnycWorker(learner_address=learner_address)

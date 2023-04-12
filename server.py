@@ -23,7 +23,7 @@ if __name__ == "__main__":
                 ),
                 api_key=sys.argv[1],
             )
-    else if agent_name == "mountain-car":
+    elif agent_name == "mountain-car":
         learner = AsyncLearningNode(
                 agent=create_configurable(
                     "config_files/async_sac_mountaincar/agent.yaml", NameToSourcePath.agent
