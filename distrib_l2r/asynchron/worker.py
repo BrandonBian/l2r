@@ -8,6 +8,7 @@ from typing import Any
 from typing import Dict
 from typing import Optional
 from typing import Tuple
+import os
 
 from gym import Wrapper
 import gym
@@ -28,6 +29,8 @@ logging.getLogger('').setLevel(logging.INFO)
 # pip install git+https://github.com/learn-to-race/l2r.git@aicrowd-environment
 # from l2r import build_env
 # from l2r import RacingEnv
+
+agent_name = os.getenv("AGENT_NAME")
 
 
 class AsnycWorker:
@@ -89,11 +92,21 @@ class AsnycWorker:
         self.env.action_space = gym.spaces.Box(np.array([-1, -1]), np.array([1.0, 1.0]))
         self.env = EnvContainer(self.encoder, self.env) 
         """
-        self.env = gym.make("MountainCarContinuous-v0")
 
-        self.runner = create_configurable(
-            "config_files/async_sac_mountaincar/worker.yaml", NameToSourcePath.runner
-        )
+        if agent_name == "mountain-car":
+            self.env = gym.make("MountainCarContinuous-v0")
+            self.runner = create_configurable(
+                "config_files/async_sac_mountaincar/worker.yaml", NameToSourcePath.runner
+            )
+        elif agent_name == "bipedal-walker":
+            self.env = gym.make("BipedalWalker-v3")
+            self.runner = create_configurable(
+                "config_files/async_sac_bipedalwalker/worker.yaml", NameToSourcePath.runner
+            )
+        else:
+            print("Invalid Agent Name!")
+            exit(1)
+
         print("(worker.py) Action Space ==", self.env.action_space)
 
     def work(self) -> None:

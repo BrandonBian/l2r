@@ -14,9 +14,11 @@ import os
 if __name__ == "__main__":
 
     agent_name = os.getenv("AGENT_NAME")
+    print(f"Learner Initialized: {agent_name}")
 
     if agent_name == "bipedal-walker":
-        print(f"Learner Initialized: bipedal-walker")
+        # https://www.gymlibrary.dev/environments/box2d/bipedal_walker/
+
         learner = AsyncLearningNode(
             agent=create_configurable(
                 "config_files/async_sac_bipedalwalker/agent.yaml", NameToSourcePath.agent
@@ -24,7 +26,8 @@ if __name__ == "__main__":
             api_key=sys.argv[1],
         )
     elif agent_name == "mountain-car":
-        print(f"Learner Initialized: mountain-car")
+        # https://mgoulao.github.io/gym-docs/environments/classic_control/mountain_car_continuous/
+
         learner = AsyncLearningNode(
             agent=create_configurable(
                 "config_files/async_sac_mountaincar/agent.yaml", NameToSourcePath.agent

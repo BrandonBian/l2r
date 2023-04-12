@@ -12,6 +12,7 @@ import time
 from tqdm import tqdm
 import sys
 import socket
+import os
 from src.agents.base import BaseAgent
 from src.config.yamlize import create_configurable, NameToSourcePath, yamlize
 from src.loggers.WanDBLogger import WanDBLogger
@@ -24,9 +25,11 @@ from distrib_l2r.utils import receive_data
 from distrib_l2r.utils import send_data
 
 logging.getLogger('').setLevel(logging.INFO)
-
+agent_name = os.getenv("AGENT_NAME")
 
 # https://stackoverflow.com/questions/41653281/sockets-with-threadpool-server-python
+
+
 class ThreadPoolMixIn(socketserver.ThreadingMixIn):
     '''
     use a thread pool instead of a new thread on every request
@@ -144,9 +147,17 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
 
         # Create a replay buffer
         self.buffer_size = buffer_size
-        self.replay_buffer = create_configurable(
-            "config_files/async_sac_mountaincar/buffer.yaml", NameToSourcePath.buffer
-        )
+        if agent_name == "mountain-car":
+            self.replay_buffer = create_configurable(
+                "config_files/async_sac_mountaincar/buffer.yaml", NameToSourcePath.buffer
+            )
+        elif agent_name == "bipedal-waler":
+            self.replay_buffer = create_configurable(
+                "config_files/async_sac_bipedalwalker/buffer.yaml", NameToSourcePath.buffer
+            )
+        else:
+            print("Invalid Agent Name!")
+            exit(1)
 
         # Inital policy to use
         self.agent = agent
@@ -187,7 +198,6 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
 
     def update_agent(self) -> None:
         """Update policy that will be sent to workers without blocking"""
-        print("update agent")
         if not self.agent_queue.empty():
             try:
                 # empty queue for safe put()
@@ -200,7 +210,6 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
 
     def learn(self) -> None:
         """The thread where thread-safe gradient updates occur"""
-        print("learn")
         epoch = 0
         while True:
             if not self.buffer_queue.empty() or len(self.replay_buffer) == 0:
