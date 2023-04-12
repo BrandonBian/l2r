@@ -37,3 +37,4 @@ if __name__ == "__main__":
 
     server_thread = threading.Thread(target=learner.serve_forever)
     server_thread.start()
+    learner.learn()
