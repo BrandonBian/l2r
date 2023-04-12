@@ -91,11 +91,9 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
         # Received evaluation results from a worker
         elif isinstance(msg, EvalResultsMsg):
-            print(msg.data)
+            print("Received:", msg.data)
             self.server.wandb_logger.log_metric(
-
                 msg.data["reward"], 'reward'
-
             )
 
         # unexpected
@@ -189,6 +187,7 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
 
     def update_agent(self) -> None:
         """Update policy that will be sent to workers without blocking"""
+        print("update agent")
         if not self.agent_queue.empty():
             try:
                 # empty queue for safe put()
@@ -201,6 +200,7 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
 
     def learn(self) -> None:
         """The thread where thread-safe gradient updates occur"""
+        print("learn")
         epoch = 0
         while True:
             if not self.buffer_queue.empty() or len(self.replay_buffer) == 0:
