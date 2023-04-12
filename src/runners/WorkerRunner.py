@@ -46,8 +46,6 @@ class WorkerRunner(BaseRunner):
         state_encoded, info = env.reset()
         state_encoded = torch.Tensor(state_encoded)
 
-        print("(WorkerRunner.py) state_encoded.shape ==", state_encoded.shape)
-
         ep_ret = 0
         self.replay_buffer = create_configurable(
             self.buffer_config_path, NameToSourcePath.buffer
