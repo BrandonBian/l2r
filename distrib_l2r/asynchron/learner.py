@@ -12,6 +12,7 @@ import time
 from tqdm import tqdm
 import sys
 import socket
+import os
 from src.agents.base import BaseAgent
 from src.config.yamlize import create_configurable, NameToSourcePath, yamlize
 from src.loggers.WanDBLogger import WanDBLogger
@@ -24,14 +25,16 @@ from distrib_l2r.utils import receive_data
 from distrib_l2r.utils import send_data
 
 logging.getLogger('').setLevel(logging.INFO)
-
+agent_name = os.getenv("AGENT_NAME")
 
 # https://stackoverflow.com/questions/41653281/sockets-with-threadpool-server-python
+
+
 class ThreadPoolMixIn(socketserver.ThreadingMixIn):
     '''
     use a thread pool instead of a new thread on every request
     '''
-    # numThreads = 50    
+    # numThreads = 50
     allow_reuse_address = True  # seems to fix socket.error on server restart
 
     def serve_forever(self):
@@ -57,7 +60,8 @@ class ThreadPoolMixIn(socketserver.ThreadingMixIn):
         obtain request from queue instead of directly from server socket
         '''
         while True:
-            socketserver.ThreadingMixIn.process_request_thread(self, *self.requests.get())
+            socketserver.ThreadingMixIn.process_request_thread(
+                self, *self.requests.get())
 
     def handle_request(self):
         '''
@@ -90,11 +94,9 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
         # Received evaluation results from a worker
         elif isinstance(msg, EvalResultsMsg):
-            print(msg.data)
+            print("Received:", msg.data)
             self.server.wandb_logger.log_metric(
-
                 msg.data["reward"], 'reward'
-
             )
 
         # unexpected
@@ -103,7 +105,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             return
 
         # Reply to the request with an up-to-date policy
-        send_data(data=PolicyMsg(data=self.server.get_agent_dict()), sock=self.request)
+        send_data(data=PolicyMsg(data=self.server.get_agent_dict()),
+                  sock=self.request)
 
 
 class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
@@ -144,16 +147,25 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
 
         # Create a replay buffer
         self.buffer_size = buffer_size
-        self.replay_buffer = create_configurable(
-            "config_files/async_sac_mountaincar/buffer.yaml", NameToSourcePath.buffer
-        )
+        if agent_name == "mountain-car":
+            self.replay_buffer = create_configurable(
+                "config_files/async_sac_mountaincar/buffer.yaml", NameToSourcePath.buffer
+            )
+        elif agent_name == "bipedal-waler":
+            self.replay_buffer = create_configurable(
+                "config_files/async_sac_bipedalwalker/buffer.yaml", NameToSourcePath.buffer
+            )
+        else:
+            print("Invalid Agent Name!")
+            exit(1)
 
         # Inital policy to use
         self.agent = agent
         self.agent_id = 1
 
         # The bytes of the policy to reply to requests with
-        self.updated_agent = {k: v.cpu() for k, v in self.agent.state_dict().items()}
+        self.updated_agent = {k: v.cpu()
+                              for k, v in self.agent.state_dict().items()}
 
         # A thread-safe policy queue to avoid blocking while learning. This marginally
         # increases off-policy error in order to improve throughput.
@@ -163,7 +175,8 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
         # main replay buffer
         self.buffer_queue = queue.LifoQueue(300)
 
-        self.wandb_logger = WanDBLogger(api_key=api_key, project_name="test-project")
+        self.wandb_logger = WanDBLogger(
+            api_key=api_key, project_name="test-project")
         # Save function, called optionally
         self.save_func = save_func
         self.save_freq = save_freq
@@ -191,7 +204,8 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
                 _ = self.agent_queue.get_nowait()
             except queue.Empty:
                 pass
-        self.agent_queue.put({k: v.cpu() for k, v in self.agent.state_dict().items()})
+        self.agent_queue.put({k: v.cpu()
+                             for k, v in self.agent.state_dict().items()})
         self.agent_id += 1
 
     def learn(self) -> None:
@@ -203,8 +217,10 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
 
                 logging.info(f" --- Epoch {epoch} ---")
                 logging.info(f" Samples received = {len(semibuffer)}")
-                logging.info(f" Replay buffer size = {len(self.replay_buffer)}")
-                logging.info(f" Buffers to be processed = {self.buffer_queue.qsize()}")
+                logging.info(
+                    f" Replay buffer size = {len(self.replay_buffer)}")
+                logging.info(
+                    f" Buffers to be processed = {self.buffer_queue.qsize()}")
 
                 # Add new data to the primary replay buffer
                 self.replay_buffer.store(semibuffer)

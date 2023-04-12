@@ -1,9 +1,14 @@
+import numpy as np
+from src.utils.envwrapper import EnvContainer
+from src.constants import DEVICE
+from src.config.yamlize import create_configurable, NameToSourcePath, yamlize
 import logging
 import subprocess
 from typing import Any
 from typing import Dict
 from typing import Optional
 from typing import Tuple
+import os
 
 from gym import Wrapper
 import gym
@@ -25,10 +30,7 @@ logging.getLogger('').setLevel(logging.INFO)
 # from l2r import build_env
 # from l2r import RacingEnv
 
-from src.config.yamlize import create_configurable, NameToSourcePath, yamlize
-from src.constants import DEVICE
-from src.utils.envwrapper import EnvContainer
-import numpy as np
+agent_name = os.getenv("AGENT_NAME")
 
 
 class AsnycWorker:
@@ -90,11 +92,21 @@ class AsnycWorker:
         self.env.action_space = gym.spaces.Box(np.array([-1, -1]), np.array([1.0, 1.0]))
         self.env = EnvContainer(self.encoder, self.env) 
         """
-        self.env = gym.make("MountainCarContinuous-v0")
 
-        self.runner = create_configurable(
-            "config_files/async_sac_mountaincar/worker.yaml", NameToSourcePath.runner
-        )
+        if agent_name == "mountain-car":
+            self.env = gym.make("MountainCarContinuous-v0")
+            self.runner = create_configurable(
+                "config_files/async_sac_mountaincar/worker.yaml", NameToSourcePath.runner
+            )
+        elif agent_name == "bipedal-walker":
+            self.env = gym.make("BipedalWalker-v3")
+            self.runner = create_configurable(
+                "config_files/async_sac_bipedalwalker/worker.yaml", NameToSourcePath.runner
+            )
+        else:
+            print("Invalid Agent Name!")
+            exit(1)
+
         print("(worker.py) Action Space ==", self.env.action_space)
 
     def work(self) -> None:
@@ -102,13 +114,16 @@ class AsnycWorker:
         counter = 0
         is_train = True
         logging.info("Sending init message to establish connection")
-        response = send_data(data=InitMsg(), addr=self.learner_address, reply=True)
+        response = send_data(
+            data=InitMsg(), addr=self.learner_address, reply=True)
         policy_id, policy = response.data["policy_id"], response.data["policy"]
         logging.info("Finish init message, start true communication")
 
         while True:
-            buffer, result = self.collect_data(policy_weights=policy, is_train=is_train)
-            self.mean_reward = self.mean_reward * (0.2) + result["reward"] * 0.8
+            buffer, result = self.collect_data(
+                policy_weights=policy, is_train=is_train)
+            self.mean_reward = self.mean_reward * \
+                (0.2) + result["reward"] * 0.8
 
             if is_train:
                 response = send_data(
@@ -118,7 +133,7 @@ class AsnycWorker:
                 )
 
                 logging.info(f" --- Iteration {counter}: Training ---")
-                logging.info(f" >> reward (not sent): {self.mean_reward}")
+                logging.info(f" >> reward: {self.mean_reward}")
                 logging.info(f" >> buffer size (sent): {len(buffer)}")
 
             else:
@@ -131,7 +146,7 @@ class AsnycWorker:
 
                 logging.info(f" --- Iteration {counter}: Inference ---")
                 logging.info(f" >> reward (sent): {self.mean_reward}")
-                logging.info(f" >> buffer size (not sent): {len(buffer)}")
+                logging.info(f" >> buffer size: {len(buffer)}")
 
             is_train = response.data["is_train"]
             policy_id, policy = response.data["policy_id"], response.data["policy"]
