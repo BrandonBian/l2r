@@ -27,8 +27,9 @@ class WorkerRunner(BaseRunner):
         self.buffer_config_path = buffer_config_path
         self.max_episode_length = max_episode_length
 
-        ## AGENT Declaration
-        self.agent = create_configurable(self.agent_config_path, NameToSourcePath.agent)
+        # AGENT Declaration
+        self.agent = create_configurable(
+            self.agent_config_path, NameToSourcePath.agent)
 
     def run(self, env, agent_params, is_train):
         """Grab data for system that's needed, and send a buffer accordingly. Note: does a single 'episode'
@@ -55,16 +56,15 @@ class WorkerRunner(BaseRunner):
             t += 1
             self.agent.deterministic = not is_train
             action_obj = self.agent.select_action(state_encoded)
-            print("(WorkerRunner.py) action_obj.action.shape ==", action_obj.action.shape)
-            next_state_encoded, reward, done, terminated, _= env.step(action_obj.action)
-            
+            next_state_encoded, reward, done, terminated, _ = env.step(
+                action_obj.action)
+
             # print(f'info{info}')
             next_state_encoded = torch.Tensor(next_state_encoded)
             state_encoded.to(DEVICE)
             next_state_encoded.to(DEVICE)
             done = done or terminated
             ep_ret += reward
-
 
             self.replay_buffer.store(
                 {
@@ -80,7 +80,7 @@ class WorkerRunner(BaseRunner):
 
             state_encoded = next_state_encoded
         from copy import deepcopy
-        info = {'metrics':{}}
+        info = {'metrics': {}}
         info["metrics"]["reward"] = ep_ret
         print(info["metrics"])
         return deepcopy(self.replay_buffer), info["metrics"]

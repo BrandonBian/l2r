@@ -1,3 +1,7 @@
+import numpy as np
+from src.utils.envwrapper import EnvContainer
+from src.constants import DEVICE
+from src.config.yamlize import create_configurable, NameToSourcePath, yamlize
 import logging
 import subprocess
 from typing import Any
@@ -24,11 +28,6 @@ logging.getLogger('').setLevel(logging.INFO)
 # pip install git+https://github.com/learn-to-race/l2r.git@aicrowd-environment
 # from l2r import build_env
 # from l2r import RacingEnv
-
-from src.config.yamlize import create_configurable, NameToSourcePath, yamlize
-from src.constants import DEVICE
-from src.utils.envwrapper import EnvContainer
-import numpy as np
 
 
 class AsnycWorker:
@@ -102,13 +101,16 @@ class AsnycWorker:
         counter = 0
         is_train = True
         logging.info("Sending init message to establish connection")
-        response = send_data(data=InitMsg(), addr=self.learner_address, reply=True)
+        response = send_data(
+            data=InitMsg(), addr=self.learner_address, reply=True)
         policy_id, policy = response.data["policy_id"], response.data["policy"]
         logging.info("Finish init message, start true communication")
 
         while True:
-            buffer, result = self.collect_data(policy_weights=policy, is_train=is_train)
-            self.mean_reward = self.mean_reward * (0.2) + result["reward"] * 0.8
+            buffer, result = self.collect_data(
+                policy_weights=policy, is_train=is_train)
+            self.mean_reward = self.mean_reward * \
+                (0.2) + result["reward"] * 0.8
 
             if is_train:
                 response = send_data(
