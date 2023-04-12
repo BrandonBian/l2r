@@ -10,13 +10,20 @@ import torch
 from torch import nn
 import numpy as np
 import time
-
-
-learner_ip = socket.gethostbyname("mcar-learner-service")
-learner_address = (learner_ip, 4444)
-
+import os
 
 if __name__ == "__main__":
-    worker = AsnycWorker(learner_address=learner_address)
-    print("Worker inited!!!")
+
+    agent_name = os.getenv("AGENT_NAME")
+    print(f"Worker Initialized - {agent_name}")
+
+    if agent_name == "bipedal-walker":
+        learner_ip = socket.gethostbyname("walker-learner-service")
+        learner_address = (learner_ip, 4444)
+        worker = AsnycWorker(learner_address=learner_address)
+    else if agent_name == "mountain-car":
+        learner_ip = socket.gethostbyname("mcar-learner-service")
+        learner_address = (learner_ip, 4444)
+        worker = AsnycWorker(learner_address=learner_address)
+
     worker.work()
