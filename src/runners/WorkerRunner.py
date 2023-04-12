@@ -80,5 +80,4 @@ class WorkerRunner(BaseRunner):
         from copy import deepcopy
         info = {'metrics': {}}
         info["metrics"]["reward"] = ep_ret
-        print(info["metrics"])
         return deepcopy(self.replay_buffer), info["metrics"]
