@@ -151,7 +151,7 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
             self.replay_buffer = create_configurable(
                 "config_files/async_sac_mountaincar/buffer.yaml", NameToSourcePath.buffer
             )
-        elif agent_name == "bipedal-waler":
+        elif agent_name == "bipedal-walker":
             self.replay_buffer = create_configurable(
                 "config_files/async_sac_bipedalwalker/buffer.yaml", NameToSourcePath.buffer
             )
