@@ -32,7 +32,7 @@ spec:
         command: # gonna have to make this smarter
           - /bin/bash
           - -c
-          - apt-get update && apt-get install xvfb swig -y && pip3 install tianshou gym strictyaml line_profiler && git clone https://github.com/BrandonBian/l2r.git && cd "$(\ls -1dt ./*/ | head -n 1)" && git checkout distributed-walker && pip3 install -r setup/devtools_reqs.txt && pip3 install wandb tensorboardX jsonpickle && pip3 install gym[box2d] && python3 worker.py
+          - apt-get update && apt-get install xvfb swig -y && pip3 install tianshou gym strictyaml line_profiler && git clone https://github.com/BrandonBian/l2r.git && cd "$(\ls -1dt ./*/ | head -n 1)" && git checkout distributed-baselines && pip3 install -r setup/devtools_reqs.txt && pip3 install wandb tensorboardX jsonpickle && pip3 install gym[box2d] && export AGENT_NAME=bipedal-walker && python3 worker.py
 ---
 apiVersion: v1
 kind: Pod
@@ -55,7 +55,7 @@ spec:
       command: # gonna have to make this smarter
         - /bin/bash
         - -c
-        - pip3 install tianshou gym strictyaml wandb line_profiler && git clone https://github.com/BrandonBian/l2r.git && cd "$(\ls -1dt ./*/ | head -n 1)" && git checkout distributed-walker && pip3 install gym[box2d] && python3 server.py 173e38ab5f2f2d96c260f57c989b4d068b64fb8a
+        - pip3 install tianshou gym strictyaml wandb line_profiler && git clone https://github.com/BrandonBian/l2r.git && cd "$(\ls -1dt ./*/ | head -n 1)" && git checkout distributed-baselines && pip3 install gym[box2d] && export AGENT_NAME=bipedal-walker && python3 server.py 173e38ab5f2f2d96c260f57c989b4d068b64fb8a
 
       ports:
       - name: learner-port
