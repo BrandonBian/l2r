@@ -15,8 +15,11 @@ kubectl logs -f <pod-name>
 # Go inside a pod
 kubectl exec -it <pod-name> -- /bin/bash
 
-# Delete pods
+# Delete all pods
 kubectl delete all --all
+
+# Delete pod (force delete)
+kubectl delete pod <pod-name> --force --grace-period=0
 ```
 
 ## Visualization using wandb
