@@ -23,6 +23,7 @@ from distrib_l2r.api import BufferMsg
 from distrib_l2r.api import EvalResultsMsg
 from distrib_l2r.api import InitMsg
 from distrib_l2r.utils import send_data
+from src.constants import Task
 
 logging.getLogger('').setLevel(logging.INFO)
 
@@ -47,7 +48,7 @@ class AsnycWorker:
         self.learner_address = learner_address
         self.buffer_size = buffer_size
         self.mean_reward = 0.0
-        """ 
+        """
         self.env = build_env(controller_kwargs={"quiet": True},
            env_kwargs=
                    {
@@ -89,8 +90,9 @@ class AsnycWorker:
         )
         self.encoder.to(DEVICE)
 
-        self.env.action_space = gym.spaces.Box(np.array([-1, -1]), np.array([1.0, 1.0]))
-        self.env = EnvContainer(self.encoder, self.env) 
+        self.env.action_space = gym.spaces.Box(
+            np.array([-1, -1]), np.array([1.0, 1.0]))
+        self.env = EnvContainer(self.encoder, self.env)
         """
 
         if agent_name == "mountain-car":
@@ -107,21 +109,25 @@ class AsnycWorker:
             print("Invalid Agent Name!")
             exit(1)
 
-        print("(worker.py) Action Space ==", self.env.action_space)
+        logging.info("Action Space ==", self.env.action_space)
 
     def work(self) -> None:
         """Continously collect data"""
-        counter = 0
-        is_train = True
-        logging.info("Sending init message to establish connection")
+        logging.info(f"-> Worker Sending: [Init Message]")
         response = send_data(
             data=InitMsg(), addr=self.learner_address, reply=True)
-        policy_id, policy = response.data["policy_id"], response.data["policy"]
-        logging.info("Finish init message, start true communication")
 
+        policy_id = response.data["policy_id"]
+        policy = response.data["policy"]
+        task = response.data["task"]
+        logging.info(
+            f"<- Worker Receiving: [Task = {task}] | Parameter Ver = {policy_id}")
+
+        iteration = 0
         while True:
-            buffer, result = self.collect_data(
-                policy_weights=policy, is_train=is_train)
+            buffer, result = self.process(
+                policy_weights=policy, task=task)
+
             self.mean_reward = self.mean_reward * \
                 (0.2) + result["reward"] * 0.8
 
@@ -132,7 +138,7 @@ class AsnycWorker:
                     reply=True
                 )
 
-                logging.info(f" --- Iteration {counter}: Training ---")
+                logging.info(f" --- Iteration {iteration}: Training ---")
                 logging.info(f" >> reward: {self.mean_reward}")
                 logging.info(f" >> buffer size (sent): {len(buffer)}")
 
@@ -144,21 +150,22 @@ class AsnycWorker:
                     reply=True,
                 )
 
-                logging.info(f" --- Iteration {counter}: Inference ---")
+                logging.info(f" --- Iteration {iteration}: Inference ---")
                 logging.info(f" >> reward (sent): {self.mean_reward}")
                 logging.info(f" >> buffer size: {len(buffer)}")
 
-            is_train = response.data["is_train"]
-            policy_id, policy = response.data["policy_id"], response.data["policy"]
+            policy_id, policy, task = response.data["policy_id"], response.data["policy"], response.data["task"]
 
             print("")
-            counter += 1
+            iteration += 1
 
-    def collect_data(
-            self, policy_weights: dict, is_train: bool = True
+    def process(
+            self, policy_weights: dict, task: Task
     ) -> Tuple[ReplayBuffer, Any]:
         """Collect 1 episode of data in the environment"""
 
-        buffer, result = self.runner.run(self.env, policy_weights, is_train)
-
-        return buffer, result
+        if task == Task.TRAIN:
+            pass
+        else:
+            buffer, result = self.runner.run(self.env, policy_weights, task)
+            return buffer, result

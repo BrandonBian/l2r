@@ -23,6 +23,7 @@ from distrib_l2r.api import EvalResultsMsg
 from distrib_l2r.api import PolicyMsg
 from distrib_l2r.utils import receive_data
 from distrib_l2r.utils import send_data
+from src.constants import Task
 
 logging.getLogger('').setLevel(logging.INFO)
 agent_name = os.getenv("AGENT_NAME")
@@ -33,6 +34,7 @@ agent_name = os.getenv("AGENT_NAME")
 # The server applies all the changes - iterate through all the received gradients (quality or quantity matters)
 
 # Sequential: collect + train, sending parameters instead of gradients, server average the parameters
+
 
 class ThreadPoolMixIn(socketserver.ThreadingMixIn):
     '''
@@ -89,18 +91,21 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         # Received a replay buffer from a worker
         # Add this to buff
         if isinstance(msg, BufferMsg):
+            logging.info(f"<- Learner Receiving: [Replay Buffer] | Buffer Size = {len(msg.data)}")
             self.server.buffer_queue.put(msg.data)
 
         # Received an init message from a worker
         # Immediately reply with the most up-to-date policy
         elif isinstance(msg, InitMsg):
-            logging.info("Received init message")
+            logging.info(f"<- Learner Receiving: [Init Message]")
 
         # Received evaluation results from a worker
+        # Log to Weights and Biases
         elif isinstance(msg, EvalResultsMsg):
-            print("Received:", msg.data)
+            reward = msg.data["reward"]
+            logging.info(f"<- Learner Receiving: [Reward] | Reward = {reward}")
             self.server.wandb_logger.log_metric(
-                msg.data["reward"], 'reward'
+                reward, 'reward'
             )
 
         # unexpected
@@ -136,7 +141,6 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
             epochs: int = 500,  # Originally 500
             buffer_size: int = 1_000_000,  # Originally 1M
             server_address: Tuple[str, int] = ("0.0.0.0", 4444),
-            eval_prob: float = 0.20,
             save_func: Optional[Callable] = None,
             save_freq: Optional[int] = None,
             api_key: str = "",
@@ -147,7 +151,6 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
         self.update_steps = update_steps
         self.batch_size = batch_size
         self.epochs = epochs
-        self.eval_prob = eval_prob
 
         # Create a replay buffer
         self.buffer_size = buffer_size
@@ -163,7 +166,7 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
             print("Invalid Agent Name!")
             exit(1)
 
-        # Inital policy to use
+        # Initial policy to use
         self.agent = agent
         self.agent_id = 1
 
@@ -194,11 +197,15 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
                 # non-blocking
                 pass
 
-        return {
+        msg = {
+            # TODO: add the replay buffer
             "policy_id": self.agent_id,
             "policy": self.updated_agent,
-            "is_train": random.random() >= self.eval_prob,
+            "task": Task.selection(),
         }
+
+        logging.info(f"-> Learner Sending: [Task = {Task.selection()}] | Parameter Ver = {self.agent_id}")
+        return msg
 
     def update_agent(self) -> None:
         """Update policy that will be sent to workers without blocking"""

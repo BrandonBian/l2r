@@ -44,3 +44,4 @@ class PolicyMsg(BaseMsg):
         assert isinstance(self.data, dict)
         assert "policy_id" in self.data
         assert "policy" in self.data
+        assert "task" in self.data
