@@ -122,7 +122,6 @@ class AsnycWorker:
             f"<<< Worker Receiving: [{task}] | Param. Ver. = {policy_id}")
 
         while True:
-
             if task != Task.TRAIN:
                 buffer, result = self.process(
                     policy_weights=policy, task=task)
@@ -152,7 +151,8 @@ class AsnycWorker:
             else:
                 logging.info(
                     f">>> Worker Sending: [Task.TRAIN] | Not Implemented!")
-                continue
+                response = send_data(
+                    data=InitMsg(), addr=self.learner_address, reply=True)
 
             policy_id, policy, task = response.data["policy_id"], response.data["policy"], response.data["task"]
 
