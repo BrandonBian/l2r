@@ -29,6 +29,10 @@ agent_name = os.getenv("AGENT_NAME")
 
 # https://stackoverflow.com/questions/41653281/sockets-with-threadpool-server-python
 
+# New message type: parameters + batch of data (worker learn on this data, batches from replay buffer), worker provides gradients back to the server
+# The server applies all the changes - iterate through all the received gradients (quality or quantity matters)
+
+# Sequential: collect + train, sending parameters instead of gradients, server average the parameters
 
 class ThreadPoolMixIn(socketserver.ThreadingMixIn):
     '''
