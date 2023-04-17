@@ -220,6 +220,7 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
                 pass
         self.agent_queue.put({k: v.cpu()
                              for k, v in self.agent.state_dict().items()})
+
         self.agent_id += 1
 
     def learn(self) -> None:
