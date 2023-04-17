@@ -131,7 +131,7 @@ class AsnycWorker:
             self.mean_reward = self.mean_reward * \
                 (0.2) + result["reward"] * 0.8
 
-            if is_train:
+            if task == Task.COLLECT:
                 response = send_data(
                     data=BufferMsg(data=buffer),
                     addr=self.learner_address,
@@ -142,7 +142,7 @@ class AsnycWorker:
                 logging.info(f" >> reward: {self.mean_reward}")
                 logging.info(f" >> buffer size (sent): {len(buffer)}")
 
-            else:
+            elif task == Task.EVAL:
 
                 response = send_data(
                     data=EvalResultsMsg(data=result),
@@ -153,6 +153,10 @@ class AsnycWorker:
                 logging.info(f" --- Iteration {iteration}: Inference ---")
                 logging.info(f" >> reward (sent): {self.mean_reward}")
                 logging.info(f" >> buffer size: {len(buffer)}")
+
+            else:
+                printf("TODO - Worker Training Not Implemented")
+                continue
 
             policy_id, policy, task = response.data["policy_id"], response.data["policy"], response.data["task"]
 
