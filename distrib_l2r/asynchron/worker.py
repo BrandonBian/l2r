@@ -121,13 +121,11 @@ class AsnycWorker:
         logging.info(
             f"<<< Worker Receiving: [{task}] | Param. Ver. = {policy_id}")
 
-        iteration = 0
         while True:
-            buffer, result = self.process(
-                policy_weights=policy, task=task)
 
-            self.mean_reward = self.mean_reward * \
-                (0.2) + result["reward"] * 0.8
+            if task != Task.TRAIN:
+                buffer, result = self.process(
+                    policy_weights=policy, task=task)
 
             if task == Task.COLLECT:
                 response = send_data(
@@ -136,30 +134,27 @@ class AsnycWorker:
                     reply=True
                 )
 
-                logging.info(f" --- Iteration {iteration}: Training ---")
-                logging.info(f" >> reward: {self.mean_reward}")
-                logging.info(f" >> buffer size (sent): {len(buffer)}")
+                logging.info(
+                    f">>> Worker Sending: [Task.COLLECT] | Buffer Size = {len(buffer)}")
 
             elif task == Task.EVAL:
-
                 response = send_data(
                     data=EvalResultsMsg(data=result),
                     addr=self.learner_address,
                     reply=True,
                 )
 
-                logging.info(f" --- Iteration {iteration}: Inference ---")
-                logging.info(f" >> reward (sent): {self.mean_reward}")
-                logging.info(f" >> buffer size: {len(buffer)}")
+                reward = result["reward"]
+
+                logging.info(
+                    f">>> Worker Sending: [Task.EVAL] | Reward = {reward}")
 
             else:
-                printf("TODO - Worker Training Not Implemented")
+                logging.info(
+                    f">>> Worker Sending: [Task.TRAIN] | Not Implemented!")
                 continue
 
             policy_id, policy, task = response.data["policy_id"], response.data["policy"], response.data["task"]
-
-            print("")
-            iteration += 1
 
     def process(
             self, policy_weights: dict, task: Task

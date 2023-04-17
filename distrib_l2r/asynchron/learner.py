@@ -91,7 +91,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         # Received a replay buffer from a worker
         # Add this to buff
         if isinstance(msg, BufferMsg):
-            logging.info(f"<<< Learner Receiving: [Replay Buffer] | Buffer Size = {len(msg.data)}")
+            logging.info(
+                f"<<< Learner Receiving: [Replay Buffer] | Buffer Size = {len(msg.data)}")
             self.server.buffer_queue.put(msg.data)
 
         # Received an init message from a worker
@@ -103,7 +104,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         # Log to Weights and Biases
         elif isinstance(msg, EvalResultsMsg):
             reward = msg.data["reward"]
-            logging.info(f"<- Learner Receiving: [Reward] | Reward = {reward}")
+            logging.info(
+                f"<<< Learner Receiving: [Reward] | Reward = {reward}")
             self.server.wandb_logger.log_metric(
                 reward, 'reward'
             )
@@ -204,7 +206,8 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
             "task": Task.selection(),
         }
 
-        logging.info(f">>> Learner Sending: [{Task.selection()}] | Param. Ver. = {self.agent_id}")
+        logging.info(
+            f">>> Learner Sending: [{Task.selection()}] | Param. Ver. = {self.agent_id}")
         return msg
 
     def update_agent(self) -> None:
@@ -226,12 +229,8 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
             if not self.buffer_queue.empty() or len(self.replay_buffer) == 0:
                 semibuffer = self.buffer_queue.get()
 
-                logging.info(f" --- Epoch {epoch} ---")
-                logging.info(f" Samples received = {len(semibuffer)}")
                 logging.info(
-                    f" Replay buffer size = {len(self.replay_buffer)}")
-                logging.info(
-                    f" Buffers to be processed = {self.buffer_queue.qsize()}")
+                    f"--- Learner Processing: Sampled Buffer = {len(semibuffer)} | Replay Buffer = {len(len(self.replay_buffer))} | Buffer Queue = {self.buffer_queue.qsize()}")
 
                 # Add new data to the primary replay buffer
                 self.replay_buffer.store(semibuffer)
@@ -250,7 +249,6 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
                 self.save_fn(epoch=epoch, policy=self.get_policy_dict())
 
             epoch += 1
-            print("")
 
     def server_bind(self):
         # From https://stackoverflow.com/questions/6380057/python-binding-socket-address-already-in-use/18858817#18858817.
