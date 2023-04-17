@@ -91,13 +91,13 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         # Received a replay buffer from a worker
         # Add this to buff
         if isinstance(msg, BufferMsg):
-            logging.info(f"<- Learner Receiving: [Replay Buffer] | Buffer Size = {len(msg.data)}")
+            logging.info(f"<<< Learner Receiving: [Replay Buffer] | Buffer Size = {len(msg.data)}")
             self.server.buffer_queue.put(msg.data)
 
         # Received an init message from a worker
         # Immediately reply with the most up-to-date policy
         elif isinstance(msg, InitMsg):
-            logging.info(f"<- Learner Receiving: [Init Message]")
+            logging.info(f"<<< Learner Receiving: [Init Message]")
 
         # Received evaluation results from a worker
         # Log to Weights and Biases
@@ -204,7 +204,7 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
             "task": Task.selection(),
         }
 
-        logging.info(f"-> Learner Sending: [Task = {Task.selection()}] | Parameter Ver = {self.agent_id}")
+        logging.info(f">>> Learner Sending: [{Task.selection()}] | Param. Ver. = {self.agent_id}")
         return msg
 
     def update_agent(self) -> None:

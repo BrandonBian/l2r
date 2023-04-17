@@ -109,11 +109,9 @@ class AsnycWorker:
             print("Invalid Agent Name!")
             exit(1)
 
-        logging.info("Action Space ==", self.env.action_space)
-
     def work(self) -> None:
         """Continously collect data"""
-        logging.info(f"-> Worker Sending: [Init Message]")
+        logging.info(f">>> Worker Sending: [Init Message]")
         response = send_data(
             data=InitMsg(), addr=self.learner_address, reply=True)
 
@@ -121,7 +119,7 @@ class AsnycWorker:
         policy = response.data["policy"]
         task = response.data["task"]
         logging.info(
-            f"<- Worker Receiving: [Task = {task}] | Parameter Ver = {policy_id}")
+            f"<<< Worker Receiving: [{task}] | Param. Ver. = {policy_id}")
 
         iteration = 0
         while True:
