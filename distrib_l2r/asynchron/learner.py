@@ -34,6 +34,7 @@ agent_name = os.getenv("AGENT_NAME")
 
 # Sequential: collect + train, sending parameters instead of gradients, server average the parameters
 
+
 class ThreadPoolMixIn(socketserver.ThreadingMixIn):
     '''
     use a thread pool instead of a new thread on every request
@@ -89,18 +90,22 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         # Received a replay buffer from a worker
         # Add this to buff
         if isinstance(msg, BufferMsg):
+            logging.info(
+                f"<<< Learner Receiving: [Replay Buffer] | Buffer Size = {len(msg.data)}")
             self.server.buffer_queue.put(msg.data)
 
         # Received an init message from a worker
         # Immediately reply with the most up-to-date policy
         elif isinstance(msg, InitMsg):
-            logging.info("Received init message")
+            logging.info(f"<<< Learner Receiving: [Init Message]")
 
         # Received evaluation results from a worker
         elif isinstance(msg, EvalResultsMsg):
-            print("Received:", msg.data)
+            reward = msg.data["reward"]
+            logging.info(
+                f"<<< Learner Receiving: [Reward] | Reward = {reward}")
             self.server.wandb_logger.log_metric(
-                msg.data["reward"], 'reward'
+                reward, 'reward'
             )
 
         # unexpected
@@ -163,7 +168,7 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
             print("Invalid Agent Name!")
             exit(1)
 
-        # Inital policy to use
+        # Initial policy to use
         self.agent = agent
         self.agent_id = 1
 

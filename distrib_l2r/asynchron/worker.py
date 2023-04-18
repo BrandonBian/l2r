@@ -107,13 +107,11 @@ class AsnycWorker:
             print("Invalid Agent Name!")
             exit(1)
 
-        print("(worker.py) Action Space ==", self.env.action_space)
-
     def work(self) -> None:
         """Continously collect data"""
         counter = 0
         is_train = True
-        logging.info("Sending init message to establish connection")
+        logging.info(f">>> Worker Sending: [Init Message]")
         response = send_data(
             data=InitMsg(), addr=self.learner_address, reply=True)
         policy_id, policy = response.data["policy_id"], response.data["policy"]
