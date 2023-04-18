@@ -233,7 +233,7 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
                 semibuffer = self.buffer_queue.get()
 
                 logging.info(
-                    f"--- Learner Processing: Sampled Buffer = {len(semibuffer)} | Replay Buffer = {len(len(self.replay_buffer))} | Buffer Queue = {self.buffer_queue.qsize()}")
+                    f"--- Learner Processing: Sampled Buffer = {len(semibuffer)} | Replay Buffer = {len(self.replay_buffer)} | Buffer Queue = {self.buffer_queue.qsize()}")
 
                 # Add new data to the primary replay buffer
                 self.replay_buffer.store(semibuffer)
