@@ -117,7 +117,6 @@ class AsnycWorker:
 
         policy_id = response.data["policy_id"]
         policy = response.data["policy"]
-        learner_buffer = response.data["replay_buffer"]
         task = response.data["task"]
         logging.info(
             f"Worker: [{task}] | Param. Ver. = {policy_id}")
@@ -153,8 +152,9 @@ class AsnycWorker:
 
             else:
                 """ Train parameters on the obtained replay buffers, send back updated parameters (ParameterMsg) """
+                learner_buffer = response.data["replay_buffer"]
                 logging.info(
-                    f"Worker: [Task.TRAIN] | Not Implemented!")
+                    f"Worker: [Task.TRAIN] | BUFFER = {len(learner_buffer)}")
                 response = send_data(
                     data=InitMsg(), addr=self.learner_address, reply=True)
 
