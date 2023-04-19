@@ -124,7 +124,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             current_parameters = {k: v.cpu()
                                   for k, v in self.server.agent.state_dict().items()}
 
-            print(current_parameters)
+            print("Current:", current_parameters.keys())
+            print("New:", new_parameters)
 
             # print([elem[0] for elem in current_parameters], [elem[0]
             #       for elem in new_parameters])
