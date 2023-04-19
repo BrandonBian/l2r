@@ -200,10 +200,12 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
                 # non-blocking
                 pass
 
+        sending = [1, 2, 3]
+
         while True:
             try:
                 logging.warning("trying to copy")
-                buffer_to_send = deepcopy(self.replay_buffer)
+                buffer_to_send = deepcopy(sending)
                 break
             except RuntimeError as e:
                 logging.warning(e)
