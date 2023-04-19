@@ -43,7 +43,6 @@ class PolicyMsg(BaseMsg):
     def __post_init__(self):
         assert isinstance(self.data, dict)
         assert "policy_id" in self.data
-        assert "replay_buffer" in self.data
         assert "policy" in self.data
         assert "task" in self.data
 
