@@ -120,7 +120,7 @@ class AsnycWorker:
         learner_buffer = response.data["replay_buffer"]
         task = response.data["task"]
         logging.info(
-            f"Worker: [{task}] | Param. Ver. = {policy_id} | Buffer = {len(learner_buffer)}")
+            f"Worker: [{task}] | Param. Ver. = {policy_id}")
 
         while True:
             if task != Task.TRAIN:
@@ -136,7 +136,7 @@ class AsnycWorker:
                 )
 
                 logging.info(
-                    f"Worker: [Task.COLLECT] | Buffer Size = {len(buffer)}")
+                    f"Worker: [Task.COLLECT] | Param. Ver. = {policy_id} | Collected Buffer = {len(buffer)}")
 
             elif task == Task.EVAL:
                 """ Evaluate parameters, send back reward (EvalResultsMsg) """
@@ -149,7 +149,7 @@ class AsnycWorker:
                 reward = result["reward"]
 
                 logging.info(
-                    f"Worker: [Task.EVAL] | Reward = {reward}")
+                    f"Worker: [Task.EVAL] | Param. Ver. = {policy_id} | Reward = {reward}")
 
             else:
                 """ Train parameters on the obtained replay buffers, send back updated parameters (ParameterMsg) """
