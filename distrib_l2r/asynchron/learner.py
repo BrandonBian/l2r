@@ -126,16 +126,16 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                 new_parameters.keys()), "Parameters from worker not matching learner's!"
 
             # Loop through the keys of the dictionaries and update the values of old_dict using the damping formula
-            print("BEFORE: (policy.net.0.weight) =",
-                  current_parameters["policy.net.0.weight"][0])
+            print("BEFORE: (q2.regressor.2.bias) =",
+                  current_parameters["q2.regressor.2.bias"])
             alpha = 0.8
             for key in current_parameters:
                 old_value = current_parameters[key]
                 new_value = new_parameters[key]
                 updated_value = alpha * old_value + (1 - alpha) * new_value
                 current_parameters[key] = updated_value
-            print("AFTER: (policy.net.0.weight) =",
-                  current_parameters["policy.net.0.weight"][0])
+            print("AFTER: (q2.regressor.2.bias) =",
+                  current_parameters["q2.regressor.2.bias"])
 
             # self.agent.load_model(new_params)
 
