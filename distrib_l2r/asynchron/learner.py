@@ -200,6 +200,8 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
                 # non-blocking
                 pass
 
+        start = time.time()
+        
         sending = [1, 2, 3]
 
         while True:
@@ -218,8 +220,10 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
             "task": Task.selection()
         }
 
+        duration = time.time() - start
+
         logging.info(
-            f">>> Learner Sending: [{Task.selection()}] | Param. Ver. = {self.agent_id} | Buffer Size = {len(self.replay_buffer)}")
+            f">>> Learner Sending: [{Task.selection()}] | Param. Ver. = {self.agent_id} | Buffer Size = {len(self.replay_buffer)} | Preparation Time = {duration} s")
         return msg
 
     def update_agent(self) -> None:
@@ -248,6 +252,7 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
                 # Add new data to the primary replay buffer
                 self.replay_buffer.store(semibuffer)
 
+            start = time.time()
             # Learning steps for the policy
             for _ in range(max(1, min(self.update_steps, len(self.replay_buffer) // self.replay_buffer.batch_size))):
                 batch = self.replay_buffer.sample_batch()
@@ -256,6 +261,8 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
 
             # Update policy without blocking
             self.update_agent()
+            duration = time.time() - start
+            print(f"Update time = {duration}")
 
             # Optionally save
             if self.save_func and epoch % self.save_every == 0:
