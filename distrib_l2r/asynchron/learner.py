@@ -207,7 +207,7 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
         while True:
             try:
                 logging.warning("trying to copy")
-                buffer_to_send = deepcopy(mini)
+                buffer_to_send = deepcopy(self.replay_buffer)
                 break
             except RuntimeError as e:
                 logging.warning(e)
