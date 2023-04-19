@@ -136,7 +136,7 @@ class AsnycWorker:
                 )
 
                 logging.info(
-                    f"Worker: [Task.COLLECT] | Param. Ver. = {policy_id} | Collected Buffer = {len(buffer)}")
+                    f"Worker: [Task.COLLECT] | Param. Ver. = {policy_id} | Collected Buffer = {len(learner_buffer)}")
 
             elif task == Task.EVAL:
                 """ Evaluate parameters, send back reward (EvalResultsMsg) """
