@@ -22,6 +22,7 @@ from tianshou.env import DummyVectorEnv
 from distrib_l2r.api import BufferMsg
 from distrib_l2r.api import EvalResultsMsg
 from distrib_l2r.api import InitMsg
+from distrib_l2r.api import ParameterMsg
 from distrib_l2r.utils import send_data
 from src.constants import Task
 
@@ -122,10 +123,15 @@ class AsnycWorker:
             f"Worker: [{task}] | Param. Ver. = {policy_id}")
 
         while True:
-            if task != Task.TRAIN:
+            """ Process request, collect data """
+            if task == Task.Train:
+                parameters = self.train(
+                    policy_weights=policy, batches=response.data["replay_buffer"])
+            else:
                 buffer, result = self.process(
                     policy_weights=policy, task=task)
 
+            """ Send response back to learner """
             if task == Task.COLLECT:
                 """ Collect data, send back replay buffer (BufferMsg) """
                 response = send_data(
@@ -146,27 +152,27 @@ class AsnycWorker:
                 )
 
                 reward = result["reward"]
-
                 logging.info(
                     f"Worker: [Task.EVAL] | Param. Ver. = {policy_id} | Reward = {reward}")
 
             else:
                 """ Train parameters on the obtained replay buffers, send back updated parameters (ParameterMsg) """
-                learner_buffer = response.data["replay_buffer"]
-                logging.info(
-                    f"Worker: [Task.TRAIN] | BUFFER = {len(learner_buffer)}")
                 response = send_data(
-                    data=InitMsg(), addr=self.learner_address, reply=True)
+                    data=ParameterMsg(data=parameters), addr=self.learner_address, reply=True)
+                
+                logging.info(
+                    f"Worker: [Task.TRAIN] | Param. Ver. = {policy_id} | Parameters = {parameters}")
 
             policy_id, policy, task = response.data["policy_id"], response.data["policy"], response.data["task"]
 
     def process(
             self, policy_weights: dict, task: Task
     ) -> Tuple[ReplayBuffer, Any]:
-        """Collect 1 episode of data in the environment"""
+        """ Collect 1 episode of data (replay buffer OR reward) in the environment """
+        buffer, result = self.runner.run(self.env, policy_weights, task)
+        return buffer, result
 
-        if task == Task.TRAIN:
-            pass
-        else:
-            buffer, result = self.runner.run(self.env, policy_weights, task)
-            return buffer, result
+    def train(self, policy_weights: dict, batches: list):
+        """ Perform update of the received parameters based on all the received batches """
+        parameters = self.runner.train(policy_weights, batches)
+        return parameters

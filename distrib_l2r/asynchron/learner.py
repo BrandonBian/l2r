@@ -22,6 +22,7 @@ from distrib_l2r.api import BufferMsg
 from distrib_l2r.api import InitMsg
 from distrib_l2r.api import EvalResultsMsg
 from distrib_l2r.api import PolicyMsg
+from distrib_l2r.api import ParameterMsg
 from distrib_l2r.utils import receive_data
 from distrib_l2r.utils import send_data
 from src.constants import Task
@@ -113,6 +114,13 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             self.server.wandb_logger.log_metric(
                 reward, 'reward'
             )
+
+        # Received trained parameters from a worker
+        # Update current parameter with damping factors - TODO
+        elif isinstance(msg, ParameterMsg):
+            parameters = msg.data["parameters"]
+            logging.info(
+                f"<<< Learner Receiving: [Trained Parameters] | Parameters = {parameters}")
 
         # unexpected
         else:

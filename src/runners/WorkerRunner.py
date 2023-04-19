@@ -84,3 +84,14 @@ class WorkerRunner(BaseRunner):
         info = {'metrics': {}}
         info["metrics"]["reward"] = ep_ret
         return deepcopy(self.replay_buffer), info["metrics"]
+
+    def train(self, agent_params, batches):
+        self.agent.load_model(agent_params)
+
+        for batch in batches:
+            self.agent.update(batch)
+
+        parameters = {k: v.cpu()
+                      for k, v in self.agent.state_dict().items()}
+        
+        return {'parameters': parameters}
