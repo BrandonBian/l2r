@@ -202,12 +202,12 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
 
         start = time.time()
         
-        sending = [1, 2, 3]
+        mini = [1, 2, 3]
 
         while True:
             try:
                 logging.warning("trying to copy")
-                buffer_to_send = deepcopy(self.replay_buffer)
+                buffer_to_send = deepcopy(mini)
                 break
             except RuntimeError as e:
                 logging.warning(e)
@@ -222,8 +222,9 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
 
         duration = time.time() - start
 
+        print(f"Preparation Time = {duration} s")
         logging.info(
-            f">>> Learner Sending: [{Task.selection()}] | Param. Ver. = {self.agent_id} | Buffer Size = {len(self.replay_buffer)} | Preparation Time = {duration} s")
+            f">>> Learner Sending: [{Task.selection()}] | Param. Ver. = {self.agent_id} | Buffer Size = {len(self.replay_buffer)}")
         return msg
 
     def update_agent(self) -> None:
