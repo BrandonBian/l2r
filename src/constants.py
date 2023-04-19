@@ -15,6 +15,6 @@ class Task(Enum):
 
     @classmethod
     def selection(cls):
-        weights = [0.0, 0.05, 0.95]
+        weights = [0.1, 0.2, 0.7]
         return random.choices(list(cls), weights=weights)[0]
     
