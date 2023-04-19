@@ -121,19 +121,21 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             new_parameters = msg.data["parameters"]
             current_parameters = {k: v.cpu()
                                   for k, v in self.server.agent.state_dict().items()}
-            
-            assert set(current_parameters.keys()) == set(new_parameters.keys()), "Parameters from worker not matching learner's!"
 
-            print("Current:", current_parameters.keys())
-            print("New:", new_parameters.keys())
+            assert set(current_parameters.keys()) == set(
+                new_parameters.keys()), "Parameters from worker not matching learner's!"
 
-            # print([elem[0] for elem in current_parameters], [elem[0]
-            #       for elem in new_parameters])
-
-            # TODO: Refactor me to use a config (alpha=0.8)
-            # alpha = 0.8
-            # new_params = {k1: alpha*v1 + (1-alpha)*v2 for (k1, v1),
-            #               (k2, v2) in zip(current_agent_parameters, parameters)}
+            # Loop through the keys of the dictionaries and update the values of old_dict using the damping formula
+            print("BEFORE: (policy.net.0.weight) =",
+                  current_parameters["policy.net.0.weight"])
+            alpha = 0.8
+            for key in current_parameters:
+                old_value = current_parameters[key]
+                new_value = new_parameters[key]
+                updated_value = alpha * old_value + (1 - alpha) * new_value
+                current_parameters[key] = updated_value
+            print("AFTER: (policy.net.0.weight) =",
+                  current_parameters["policy.net.0.weight"])
 
             # self.agent.load_model(new_params)
 
