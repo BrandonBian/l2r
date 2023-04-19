@@ -118,14 +118,14 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         # Received trained parameters from a worker
         # Update current parameter with damping factors - TODO
         elif isinstance(msg, ParameterMsg):
-            parameters = sorted(
+            new_parameters = sorted(
                 msg.data["parameters"].items(), key=lambda a: a[0])
 
-            current_agent_parameters = sorted(
-                self.server.agent.state_dict(), key=lambda a: a[0])
+            current_parameters = {k: v.cpu()
+                                  for k, v in self.agent.state_dict().items()}
 
-            print([elem[0] for elem in current_agent_parameters], [elem[0]
-                  for elem in parameters])
+            print([elem[0] for elem in current_parameters], [elem[0]
+                  for elem in new_parameters])
 
             # TODO: Refactor me to use a config (alpha=0.8)
             # alpha = 0.8
