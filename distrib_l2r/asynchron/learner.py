@@ -203,9 +203,10 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
         start = time.time()
 
         buffers_to_send = []
-        for i in range(3):
+
+        for _ in range(30):
             batch = self.replay_buffer.sample_batch()
-        buffers_to_send.append(batch)
+            buffers_to_send.append(batch)
 
         # while True:
         #     try:
@@ -259,6 +260,7 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
             start = time.time()
             # Learning steps for the policy
             for _ in range(max(1, min(self.update_steps, len(self.replay_buffer) // self.replay_buffer.batch_size))):
+                print(f"Iters: {max(1, min(self.update_steps, len(self.replay_buffer) // self.replay_buffer.batch_size))}")
                 batch = self.replay_buffer.sample_batch()
                 self.agent.update(data=batch)
                 # print(next(self.agent.actor_critic.policy.mu_layer.parameters()))
