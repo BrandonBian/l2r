@@ -117,9 +117,10 @@ class AsnycWorker:
 
         policy_id = response.data["policy_id"]
         policy = response.data["policy"]
+        learner_buffer = response.data["replay_buffer"]
         task = response.data["task"]
         logging.info(
-            f"<<< Worker Receiving: [{task}] | Param. Ver. = {policy_id}")
+            f"<<< Worker Receiving: [{task}] | Param. Ver. = {policy_id} | Buffer = {len(learner_buffer)}")
 
         while True:
             if task != Task.TRAIN:

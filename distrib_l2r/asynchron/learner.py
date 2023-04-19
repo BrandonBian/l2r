@@ -203,11 +203,12 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
             # TODO: add the replay buffer
             "policy_id": self.agent_id,
             "policy": self.updated_agent,
-            "task": Task.selection(),
+            "replay_buffer": self.replay_buffer,
+            "task": Task.selection()
         }
 
         logging.info(
-            f">>> Learner Sending: [{Task.selection()}] | Param. Ver. = {self.agent_id}")
+            f">>> Learner Sending: [{Task.selection()}] | Param. Ver. = {self.agent_id} | Buffer Size = {len(self.replay_buffer)}")
         return msg
 
     def update_agent(self) -> None:
