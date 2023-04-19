@@ -36,6 +36,9 @@ agent_name = os.getenv("AGENT_NAME")
 
 # Sequential: collect + train, sending parameters instead of gradients, server average the parameters
 
+TIMING = False
+SEND_BATCH = 30
+
 
 class ThreadPoolMixIn(socketserver.ThreadingMixIn):
     '''
@@ -201,34 +204,34 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
                 pass
 
         start = time.time()
+        task = Task.selection()
 
-        buffers_to_send = []
+        if task == Task.TRAIN:
+            buffers_to_send = []
 
-        for _ in range(30):
-            batch = self.replay_buffer.sample_batch()
-            buffers_to_send.append(batch)
+            for _ in range(SEND_BATCH):
+                batch = self.replay_buffer.sample_batch()
+                buffers_to_send.append(batch)
 
-        # while True:
-        #     try:
-        #         logging.warning("trying to copy")
-        #         buffer_to_send = deepcopy(self.replay_buffer)
-        #         break
-        #     except RuntimeError as e:
-        #         logging.warning(e)
-
-        msg = {
-            # TODO: add the replay buffer
-            "policy_id": self.agent_id,
-            "policy": self.updated_agent,
-            "replay_buffer": buffers_to_send,
-            "task": Task.selection()
-        }
+            msg = {
+                "policy_id": self.agent_id,
+                "policy": self.updated_agent,
+                "replay_buffer": buffers_to_send,
+                "task": task
+            }
+        else:
+            msg = {
+                "policy_id": self.agent_id,
+                "policy": self.updated_agent,
+                "task": task
+            }
 
         duration = time.time() - start
+        if TIMING:
+            print(f"Preparation Time = {duration} s")
 
-        print(f"Preparation Time = {duration} s")
         logging.info(
-            f">>> Learner Sending: [{Task.selection()}] | Param. Ver. = {self.agent_id} | Buffer Size = {len(self.replay_buffer)}")
+            f">>> Learner Sending: [{Task.selection()}] | Param. Ver. = {self.agent_id}")
         return msg
 
     def update_agent(self) -> None:
@@ -260,7 +263,6 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
             start = time.time()
             # Learning steps for the policy
             for _ in range(max(1, min(self.update_steps, len(self.replay_buffer) // self.replay_buffer.batch_size))):
-                print(f"Iters: {max(1, min(self.update_steps, len(self.replay_buffer) // self.replay_buffer.batch_size))}")
                 batch = self.replay_buffer.sample_batch()
                 self.agent.update(data=batch)
                 # print(next(self.agent.actor_critic.policy.mu_layer.parameters()))
@@ -268,7 +270,8 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
             # Update policy without blocking
             self.update_agent()
             duration = time.time() - start
-            print(f"Update time = {duration}")
+            if TIMING:
+                print(f"Update time = {duration}")
 
             # Optionally save
             if self.save_func and epoch % self.save_every == 0:
