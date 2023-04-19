@@ -200,11 +200,18 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
                 # non-blocking
                 pass
 
+        while True:
+            try:
+                buffer_to_send = deepcopy(self.replay_buffer)
+                break
+            except RuntimeError as e:
+                logging.warning(e)
+
         msg = {
             # TODO: add the replay buffer
             "policy_id": self.agent_id,
             "policy": self.updated_agent,
-            "replay_buffer": deepcopy(self.replay_buffer),
+            "replay_buffer": buffer_to_send,
             "task": Task.selection()
         }
 
