@@ -298,6 +298,10 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
             if TIMING:
                 print(f"Update time = {duration}")
 
+            dictionary = {k: v.cpu()
+                          for k, v in self.agent.state_dict().items()}
+            print("MINE:", dictionary["q2.regressor.2.bias"])
+
             # Optionally save
             if self.save_func and epoch % self.save_every == 0:
                 self.save_fn(epoch=epoch, policy=self.get_policy_dict())
