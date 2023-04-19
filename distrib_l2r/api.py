@@ -45,3 +45,11 @@ class PolicyMsg(BaseMsg):
         assert "policy_id" in self.data
         assert "policy" in self.data
         assert "task" in self.data
+
+@dataclass
+class ParameterMsg(BaseMsg):
+    """A parameter message sent from a worker"""
+
+    def __post_init__(self):
+        assert isinstance(self.data, dict)
+        assert "parameters" in self.data

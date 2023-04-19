@@ -127,6 +127,7 @@ class AsnycWorker:
                     policy_weights=policy, task=task)
 
             if task == Task.COLLECT:
+                """ Collect data, send back replay buffer (BufferMsg) """
                 response = send_data(
                     data=BufferMsg(data=buffer),
                     addr=self.learner_address,
@@ -134,9 +135,10 @@ class AsnycWorker:
                 )
 
                 logging.info(
-                    f">>> Worker Sending: [Task.COLLECT] | Buffer Size = {len(buffer)}")
+                    f"Worker: [Task.COLLECT] | Buffer Size = {len(buffer)}")
 
             elif task == Task.EVAL:
+                """ Evaluate parameters, send back reward (EvalResultsMsg) """
                 response = send_data(
                     data=EvalResultsMsg(data=result),
                     addr=self.learner_address,
@@ -146,11 +148,12 @@ class AsnycWorker:
                 reward = result["reward"]
 
                 logging.info(
-                    f">>> Worker Sending: [Task.EVAL] | Reward = {reward}")
+                    f"Worker: [Task.EVAL] | Reward = {reward}")
 
             else:
+                """ Train parameters on the obtained replay buffers, send back updated parameters (ParameterMsg) """
                 logging.info(
-                    f">>> Worker Sending: [Task.TRAIN] | Not Implemented!")
+                    f"Worker: [Task.TRAIN] | Not Implemented!")
                 response = send_data(
                     data=InitMsg(), addr=self.learner_address, reply=True)
 

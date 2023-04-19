@@ -227,9 +227,7 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
         """The thread where thread-safe gradient updates occur"""
         epoch = 0
         while True:
-            print("entering learn()")
             if not self.buffer_queue.empty() or len(self.replay_buffer) == 0:
-                print("entering if statement")
                 semibuffer = self.buffer_queue.get()
 
                 logging.info(
