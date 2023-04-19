@@ -111,7 +111,7 @@ class AsnycWorker:
 
     def work(self) -> None:
         """Continously collect data"""
-        logging.info(f">>> Worker Sending: [Init Message]")
+        logging.info(f"Worker Sending: [Init Message]")
         response = send_data(
             data=InitMsg(), addr=self.learner_address, reply=True)
 
@@ -120,7 +120,7 @@ class AsnycWorker:
         learner_buffer = response.data["replay_buffer"]
         task = response.data["task"]
         logging.info(
-            f"<<< Worker Receiving: [{task}] | Param. Ver. = {policy_id} | Buffer = {len(learner_buffer)}")
+            f"Worker: [{task}] | Param. Ver. = {policy_id} | Buffer = {len(learner_buffer)}")
 
         while True:
             if task != Task.TRAIN:

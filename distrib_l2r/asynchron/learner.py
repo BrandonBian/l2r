@@ -8,6 +8,7 @@ from typing import Callable
 from typing import Dict
 from typing import Optional
 from typing import Tuple
+from copy import deepcopy
 import time
 from tqdm import tqdm
 import sys
@@ -203,7 +204,7 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
             # TODO: add the replay buffer
             "policy_id": self.agent_id,
             "policy": self.updated_agent,
-            "replay_buffer": self.replay_buffer,
+            "replay_buffer": deepcopy(self.replay_buffer),
             "task": Task.selection()
         }
 
