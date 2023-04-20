@@ -118,7 +118,6 @@ class AsnycWorker:
 
         policy_id = response.data["policy_id"]
         policy = response.data["policy"]
-        print(policy)
         task = response.data["task"]
         logging.info(
             f"Worker: [{task}] | Param. Ver. = {policy_id}")
