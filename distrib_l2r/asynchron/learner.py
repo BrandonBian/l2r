@@ -126,18 +126,16 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                 new_parameters.keys()), "Parameters from worker not matching learner's!"
 
             # Loop through the keys of the dictionaries and update the values of old_dict using the damping formula
-            print("BEFORE: (q2.regressor.2.bias) =",
-                  current_parameters["q2.regressor.2.bias"])
             alpha = 0.8
             for key in current_parameters:
                 old_value = current_parameters[key]
                 new_value = new_parameters[key]
                 updated_value = alpha * old_value + (1 - alpha) * new_value
                 current_parameters[key] = updated_value
-            print("AFTER: (q2.regressor.2.bias) =",
-                  current_parameters["q2.regressor.2.bias"])
 
-            # self.agent.load_model(new_params)
+            # self.server.agent.load_model(current_parameters)
+            logging.info(
+                f"<<< Learner Receiving: [Trained Parameters]")
 
         # unexpected
         else:
@@ -217,7 +215,6 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
             api_key=api_key, project_name="test-project")
         # Save function, called optionally
         self.save_func = save_func
-        self.save_freq = save_freq
 
     def get_agent_dict(self) -> Dict[str, Any]:
         """Get the most up-to-date version of the policy without blocking"""
@@ -297,10 +294,6 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
             duration = time.time() - start
             if TIMING:
                 print(f"Update time = {duration}")
-
-            dictionary = {k: v.cpu()
-                          for k, v in self.agent.state_dict().items()}
-            print("MINE:", dictionary["q2.regressor.2.bias"])
 
             # Optionally save
             if self.save_func and epoch % self.save_every == 0:
