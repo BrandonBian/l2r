@@ -5,6 +5,7 @@ from src.constants import DEVICE, Task
 from copy import deepcopy
 from torch.optim import Adam
 import torch
+import time
 
 
 @yamlize
@@ -86,6 +87,7 @@ class WorkerRunner(BaseRunner):
         return deepcopy(self.replay_buffer), info["metrics"]
 
     def train(self, agent_params, batches):
+        start = time.time()
         self.agent.load_model(agent_params)
 
         for batch in batches:
@@ -93,5 +95,6 @@ class WorkerRunner(BaseRunner):
 
         parameters = {k: v.cpu()
                       for k, v in self.agent.state_dict().items()}
+        duration = time.time() - start
         
-        return {'parameters': parameters}
+        return {'parameters': parameters, "duration": duration}
