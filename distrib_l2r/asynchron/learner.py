@@ -133,9 +133,11 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                 updated_value = alpha * old_value + (1 - alpha) * new_value
                 current_parameters[key] = updated_value
 
-            # self.server.agent.load_model(current_parameters)
             logging.info(
-                f"<<< Learner Receiving: [Trained Parameters]")
+                f"<<< Learner Receiving: [Trained Parameters] | Updating parameters")
+            
+            self.server.agent.load_model(current_parameters)
+            self.server.update_agent()
 
         # unexpected
         else:

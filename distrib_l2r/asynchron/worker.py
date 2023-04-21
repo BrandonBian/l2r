@@ -160,8 +160,9 @@ class AsnycWorker:
                 response = send_data(
                     data=ParameterMsg(data=parameters), addr=self.learner_address, reply=True)
                 
+                duration = parameters["duration"]
                 logging.info(
-                    f"Worker: [Task.TRAIN] | Param. Ver. = {policy_id} | Parameters = {parameters}")
+                    f"Worker: [Task.TRAIN] | Param. Ver. = {policy_id} | Training time = {duration} s")
 
             policy_id, policy, task = response.data["policy_id"], response.data["policy"], response.data["task"]
 
