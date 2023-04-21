@@ -231,6 +231,16 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
         if task == Task.TRAIN:
             buffers_to_send = []
 
+            # Sample data from buffer_queue, and put inside replay buffer
+            if not self.buffer_queue.empty() or len(self.replay_buffer) == 0:
+                semibuffer = self.buffer_queue.get()
+
+                logging.info(
+                    f"--- Learner Processing: Sampled Buffer = {len(semibuffer)} | Replay Buffer = {len(self.replay_buffer)} | Buffer Queue = {self.buffer_queue.qsize()}")
+
+                # Add new data to the primary replay buffer
+                self.replay_buffer.store(semibuffer)
+
             for _ in range(SEND_BATCH):
                 batch = self.replay_buffer.sample_batch()
                 buffers_to_send.append(batch)
@@ -271,16 +281,10 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
 
     def learn(self) -> None:
         """The thread where thread-safe gradient updates occur"""
-        epoch = 0
-        while True:
-            if not self.buffer_queue.empty() or len(self.replay_buffer) == 0:
-                semibuffer = self.buffer_queue.get()
+        pass
+        # epoch = 0
+        # while True:
 
-                logging.info(
-                    f"--- Learner Processing: Sampled Buffer = {len(semibuffer)} | Replay Buffer = {len(self.replay_buffer)} | Buffer Queue = {self.buffer_queue.qsize()}")
-
-                # Add new data to the primary replay buffer
-                self.replay_buffer.store(semibuffer)
 
             # start = time.time()
             # # Learning steps for the policy
@@ -295,10 +299,10 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
             #     print(f"Update time = {duration}")
 
             # Optionally save
-            if self.save_func and epoch % self.save_every == 0:
-                self.save_fn(epoch=epoch, policy=self.get_policy_dict())
+            # if self.save_func and epoch % self.save_every == 0:
+            #     self.save_fn(epoch=epoch, policy=self.get_policy_dict())
 
-            epoch += 1
+            # epoch += 1
 
     def server_bind(self):
         # From https://stackoverflow.com/questions/6380057/python-binding-socket-address-already-in-use/18858817#18858817.
