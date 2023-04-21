@@ -233,16 +233,6 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
         if task == Task.TRAIN:
             buffers_to_send = []
 
-            # Sample data from buffer_queue, and put inside replay buffer
-            if not self.buffer_queue.empty() or len(self.replay_buffer) == 0:
-                semibuffer = self.buffer_queue.get()
-
-                logging.info(
-                    f"--- Learner Processing: Sampled Buffer = {len(semibuffer)} | Replay Buffer = {len(self.replay_buffer)} | Buffer Queue = {self.buffer_queue.qsize()}")
-
-                # Add new data to the primary replay buffer
-                self.replay_buffer.store(semibuffer)
-
             for _ in range(SEND_BATCH):
                 batch = self.replay_buffer.sample_batch()
                 buffers_to_send.append(batch)
@@ -283,7 +273,19 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
 
     def learn(self) -> None:
         """The thread where thread-safe gradient updates occur"""
-        pass
+        while True:
+            # Sample data from buffer_queue, and put inside replay buffer
+            if not self.buffer_queue.empty() or len(self.replay_buffer) == 0:
+                semibuffer = self.buffer_queue.get()
+
+                logging.info(
+                    f"--- Learner Processing: Sampled Buffer = {len(semibuffer)} | Replay Buffer = {len(self.replay_buffer)} | Buffer Queue = {self.buffer_queue.qsize()}")
+
+                # Add new data to the primary replay buffer
+                self.replay_buffer.store(semibuffer)
+            
+            time.sleep(1)
+
         # epoch = 0
         # while True:
 
