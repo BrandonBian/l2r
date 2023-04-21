@@ -284,7 +284,7 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
                 # Add new data to the primary replay buffer
                 self.replay_buffer.store(semibuffer)
             
-            time.sleep(10)
+            time.sleep(0.5)
 
         # epoch = 0
         # while True:
