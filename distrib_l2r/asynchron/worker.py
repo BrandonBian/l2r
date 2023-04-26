@@ -125,6 +125,7 @@ class AsnycWorker:
         while True:
             """ Process request, collect data """
             if task == Task.TRAIN:
+                print(len(response.data["replay_buffer"]))
                 parameters = self.train(
                     policy_weights=policy, batches=response.data["replay_buffer"])
             else:
