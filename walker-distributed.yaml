@@ -15,10 +15,10 @@ spec:
       labels:
         tier: worker-set
     spec:
-      # nodeSelector:
-      #   # we don't specify the cluster, maybe it's ok to just delete the phortx stuff?
-      #   # 1-3
-      #   nodetype: 1
+      nodeSelector:
+        # we don't specify the cluster, maybe it's ok to just delete the phortx stuff?
+        # 1-3
+        nodetype: phortx
       
       containers:
       - name: worker-container
@@ -28,11 +28,15 @@ spec:
             limits:
                 nvidia.com/gpu: 1
         env:
+          - name: NVIDIA_VISIBLE_DEVICES 
+            value: "0" 
+          - name: CUDA_VISIBLE_DEVICES
+            value: "0" 
         image: docker.pdl.cmu.edu/l2r2022:latest
         command: # gonna have to make this smarter
           - /bin/bash
           - -c
-          - apt-get update && apt-get install xvfb swig -y && pip3 install tianshou gym strictyaml line_profiler && git clone https://github.com/BrandonBian/l2r.git && cd "$(\ls -1dt ./*/ | head -n 1)" && git checkout distributed-baselines && pip3 install -r setup/devtools_reqs.txt && pip3 install wandb tensorboardX jsonpickle && pip3 install gym[box2d] && export AGENT_NAME=bipedal-walker && python3 worker.py
+          - apt-get update && apt-get install xvfb swig -y && pip3 install tianshou gym strictyaml line_profiler && git clone https://github.com/BrandonBian/l2r.git && cd "$(\ls -1dt ./*/ | head -n 1)" && git checkout distributed-training && pip3 install -r setup/devtools_reqs.txt && pip3 install wandb tensorboardX jsonpickle && pip3 install gym[box2d] && export AGENT_NAME=bipedal-walker && python3 worker.py
 ---
 apiVersion: v1
 kind: Pod
@@ -55,7 +59,7 @@ spec:
       command: # gonna have to make this smarter
         - /bin/bash
         - -c
-        - pip3 install tianshou gym strictyaml wandb line_profiler && git clone https://github.com/BrandonBian/l2r.git && cd "$(\ls -1dt ./*/ | head -n 1)" && git checkout distributed-baselines && pip3 install gym[box2d] && export AGENT_NAME=bipedal-walker && python3 server.py 173e38ab5f2f2d96c260f57c989b4d068b64fb8a
+        - pip3 install tianshou gym strictyaml wandb line_profiler && git clone https://github.com/BrandonBian/l2r.git && cd "$(\ls -1dt ./*/ | head -n 1)" && git checkout distributed-training && pip3 install gym[box2d] && export AGENT_NAME=bipedal-walker && python3 server.py 173e38ab5f2f2d96c260f57c989b4d068b64fb8a
 
       ports:
       - name: learner-port
