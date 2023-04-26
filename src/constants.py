@@ -12,9 +12,3 @@ class Task(Enum):
     EVAL = "eval"
     # Worker performs data collection (returns: replay buffer)
     COLLECT = "collect"
-
-    @classmethod
-    def selection(cls):
-        weights = [0.7, 0.1, 0.2]
-        return random.choices(list(cls), weights=weights)[0]
-    

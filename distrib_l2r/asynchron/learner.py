@@ -228,7 +228,7 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
                 pass
 
         start = time.time()
-        task = Task.selection()
+        task = self.select_task
 
         if task == Task.TRAIN:
             buffers_to_send = []
@@ -313,3 +313,12 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
         # Tries to ensure reuse. Might be wrong.
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.socket.bind(self.server_address)
+
+    def select_task(self):
+        if len(self.replay_buffer) < 2048:
+            # If replay buffer is empty, we need to collect more data
+            return Task.COLLECT
+        else:
+            weights = [0.5, 0.1, 0.4]
+            return random.choices([Task.TRAIN, Task.EVAL, Task.COLLECT], weights=weights)[0]
+    
