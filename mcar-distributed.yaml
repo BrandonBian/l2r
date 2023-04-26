@@ -6,7 +6,7 @@ metadata:
     tier: worker-set
 spec:
   # 2 to start, then for phortx 30-40 is the upper bound probably
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       tier: worker-set
@@ -28,6 +28,10 @@ spec:
             limits:
                 nvidia.com/gpu: 1
         env:
+          - name: NVIDIA_VISIBLE_DEVICES 
+            value: "0" 
+          - name: CUDA_VISIBLE_DEVICES
+            value: "0" 
         image: docker.pdl.cmu.edu/l2r2022:latest
         command: # gonna have to make this smarter
           - /bin/bash
