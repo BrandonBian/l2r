@@ -228,7 +228,7 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
                 pass
 
         start = time.time()
-        task = self.select_task
+        task = self.select_task()
 
         if task == Task.TRAIN:
             buffers_to_send = []
