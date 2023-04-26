@@ -255,7 +255,7 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
             print(f"Preparation Time = {duration} s")
 
         logging.info(
-            f">>> Learner Sending: [{Task.selection()}] | Param. Ver. = {self.agent_id}")
+            f">>> Learner Sending: [{task}] | Param. Ver. = {self.agent_id}")
         return msg
 
     def update_agent(self) -> None:
