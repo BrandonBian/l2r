@@ -2,6 +2,7 @@
 import numpy as np
 import torch
 import itertools
+import gym
 from src.constants import DEVICE
 
 
