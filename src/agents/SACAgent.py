@@ -140,6 +140,10 @@ class SACAgent(BaseAgent):
         """
         torch.save(self.actor_critic.state_dict(), path)
 
+    def state_dict(self):
+        """Emulate torch behavior; note to self to remove once better refactor comes in."""
+        return self.actor_critic.state_dict()    
+
     def _compute_loss_q(self, data, pi, log_pi):
         """Set up function for computing SAC Q-losses."""
         o, a, r, o2, d = (
