@@ -6,7 +6,7 @@ metadata:
     tier: worker-set
 spec:
   # 2 to start, then for phortx 30-40 is the upper bound probably
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       tier: worker-set
@@ -59,7 +59,7 @@ spec:
       command: # gonna have to make this smarter
         - /bin/bash
         - -c
-        - pip3 install tianshou gym strictyaml wandb line_profiler && git clone https://github.com/BrandonBian/l2r.git && cd "$(\ls -1dt ./*/ | head -n 1)" && git checkout distributed-training && pip3 install gym[box2d] && export AGENT_NAME=bipedal-walker && python3 server.py 173e38ab5f2f2d96c260f57c989b4d068b64fb8a
+        - pip3 install tianshou gym strictyaml wandb line_profiler jsonpickle && git clone https://github.com/BrandonBian/l2r.git && cd "$(\ls -1dt ./*/ | head -n 1)" && git checkout distributed-training && pip3 install gym[box2d] && export AGENT_NAME=bipedal-walker && python3 server.py 173e38ab5f2f2d96c260f57c989b4d068b64fb8a
 
       ports:
       - name: learner-port
