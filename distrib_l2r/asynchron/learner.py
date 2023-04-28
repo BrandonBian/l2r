@@ -107,7 +107,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         agent: BaseAgent,
         update_steps: int = 3000,
         batch_size: int = 128, # Originally 128
-        epochs: int = 500, # Originally 500
+        epochs: int = 1500, # Originally 500
         buffer_size: int = 1_000_000, # Originally 1M
         server_address: Tuple[str, int] = ("0.0.0.0", 4444),
         eval_prob: float = 0.20,
