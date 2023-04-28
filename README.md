@@ -14,6 +14,10 @@
 ### [distributed-l2r] branch - Still BUGS!
 1. Moved `distributedworker.py` and `distributedlearner.py` from `./scripts/` to `root`
 2. `./src/config/schema.py` missing fields from `config_files/async_sac/agent.yaml`
+3. `./config_files/async_sac/agent.yaml` update parameter name `actor_critic_cfg -> actor_critic_cfg_path`
+4. Added `state_dict` in `SACAgent.py`
+5. Remove `entity="learn2race"` from `src/loggers/WanDBLogger.py`
+6. Added `wandb tensorboardX` for the pip install of the `l2r-distributed.yaml`
 
 ### [distributed-baselines] branch (`mountain-car` + `bipedal-walker`)
 1. Remove `entity="learn2race"` from `src/loggers/WanDBLogger.py`
