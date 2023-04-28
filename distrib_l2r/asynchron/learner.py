@@ -44,20 +44,36 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         elif isinstance(msg, EvalResultsMsg):
             logging.warn("Received evaluation results message")
             logging.warn(msg.data)
-            self.server.wandb_logger.eval_log(
-                (
-                    msg.data["reward"],
-                    msg.data["total_distance"],
-                    msg.data["total_time"],
-                    msg.data["num_infractions"],
-                    msg.data["average_speed_kph"],
-                    msg.data["average_displacement_error"],
-                    msg.data["trajectory_efficiency"],
-                    msg.data["trajectory_admissibility"],
-                    msg.data["movement_smoothness"],
-                    msg.data["timestep/sec"],
-                    msg.data["laps_completed"],
-                )
+            # self.server.wandb_logger.log(
+            #     (
+            #         msg.data["reward"],
+            #         msg.data["total_distance"],
+            #         msg.data["total_time"],
+            #         msg.data["num_infractions"],
+            #         msg.data["average_speed_kph"],
+            #         msg.data["average_displacement_error"],
+            #         msg.data["trajectory_efficiency"],
+            #         msg.data["trajectory_admissibility"],
+            #         msg.data["movement_smoothness"],
+            #         msg.data["timestep/sec"],
+            #         msg.data["laps_completed"],
+            #     )
+            # )
+
+            self.server.wandb_logger.log(
+                {
+                    "reward": msg.data["reward"],
+                    "Distance": msg.data["total_distance"],
+                    "Time": msg.data["total_time"],
+                    "Num infractions": msg.data["num_infractions"],
+                    "Average Speed KPH": msg.data["average_speed_kph"],
+                    "Average Displacement Error": msg.data["average_displacement_error"],
+                    "Trajectory Efficiency": msg.data["trajectory_efficiency"],
+                    "Trajectory Admissability": msg.data["trajectory_admissibility"],
+                    "Movement Smoothness": msg.data["movement_smoothness"],
+                    "Timestep per Sec": msg.data["timestep/sec"],
+                    "Laps Completed": msg.data["laps_completed"],
+                }
             )
 
         # unexpected
