@@ -124,13 +124,12 @@ class SACAgent(BaseAgent):
         """
         pass
 
-    def load_model(self, path):
-        """Load model from path.
-
-        Args:
-            path (str): Load model from path.
-        """
-        self.actor_critic.load_state_dict(torch.load(path))
+    def load_model(self, path_or_checkpoint):
+        """Load model from parameters or path, depending on type    """
+        if isinstance(path_or_checkpoint, str):
+            self.actor_critic.load_state_dict(torch.load(path_or_checkpoint))
+        else:
+            self.actor_critic.load_state_dict(path_or_checkpoint)
 
     def save_model(self, path):
         """Save model to path
