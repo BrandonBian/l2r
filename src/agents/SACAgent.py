@@ -158,14 +158,14 @@ class SACAgent(BaseAgent):
 
         # Bellman backup for Q functions
         with torch.no_grad():
+            # Target actions come from *current* policy
+            a2, logp_a2 = self.actor_critic.pi(o2)
+
             # Target Q-values
-            q1_pi_targ = self.actor_critic_target.q1(o2, pi)
-            q2_pi_targ = self.actor_critic_target.q2(o2, pi)
+            q1_pi_targ = self.actor_critic_target.q1(o2, a2)
+            q2_pi_targ = self.actor_critic_target.q2(o2, a2)
             q_pi_targ = torch.min(q1_pi_targ, q2_pi_targ)
-            # Calculates debug metrics of only one of the Q-nets, modify counter in function in utils to do both 
-            resvar = self.debugger.residual_variance(q_pi_targ, q1) #resvar is calculated over multiple steps so it may be None most of the time
-            self.debugger.collect_values_value_targets(value=q1, value_target=q1_pi_targ)
-            backup = r + self.gamma * (1 - d) * (q_pi_targ - self.alpha * log_pi)
+            backup = r + self.gamma * (1 - d) * (q_pi_targ - self.alpha * logp_a2)
 
         # MSE loss against Bellman backup
         loss_q1 = ((q1 - backup) ** 2).mean()
@@ -174,10 +174,11 @@ class SACAgent(BaseAgent):
 
         # Useful info for logging
         q_info = dict(
-            Q1Vals=q1.detach().cpu().numpy(), Q2Vals=q2.detach().cpu().numpy(), ResidualVariance=resvar
+            Q1Vals=q1.detach().cpu().numpy(), Q2Vals=q2.detach().cpu().numpy()
         )
 
         return loss_q, q_info
+
 
     def _compute_loss_pi(self, data, pi, logp_pi):
         """Set up function for computing SAC pi loss."""
@@ -206,7 +207,6 @@ class SACAgent(BaseAgent):
         q2_params = self.actor_critic_target.q1.parameters()
         
         mu, log_std = self.actor_critic.pi(data["obs"])
-        relpolent = self.debugger.relative_policy_entropy(log_std)
         
         # Entropy loss
         #self.alpha = torch.exp(self.log_ent_coef.detach())
