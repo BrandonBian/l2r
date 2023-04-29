@@ -18,7 +18,7 @@ spec:
       # nodeSelector:
       #   # we don't specify the cluster, maybe it's ok to just delete the phortx stuff?
       #   # 1-3
-      #   nodetype: 1
+      #   nodetype: phortx2
       containers:
       - name: worker-container
         tty: true

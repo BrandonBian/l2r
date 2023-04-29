@@ -15,9 +15,10 @@
 1. Moved `distributedworker.py` and `distributedlearner.py` from `./scripts/` to `root`
 2. `./src/config/schema.py` missing fields from `config_files/async_sac/agent.yaml`
 3. `./config_files/async_sac/agent.yaml` update parameter name `actor_critic_cfg -> actor_critic_cfg_path`
-4. Added `state_dict` in `SACAgent.py`
+4. Added `state_dict(self)` function in `SACAgent.py`
 5. Remove `entity="learn2race"` from `src/loggers/WanDBLogger.py`
-6. Added `wandb tensorboardX` for the pip install of the `l2r-distributed.yaml`
+6. Added `wandb tensorboardX jsonpickle` for the pip install of the server and learner in `l2r-distributed.yaml`
+7. Using the `load_model()` from the `l2r-benchmarks -> distributed-aicrowd` in `SACAgent.yaml`
 
 ### [distributed-baselines] branch (`mountain-car` + `bipedal-walker`)
 1. Remove `entity="learn2race"` from `src/loggers/WanDBLogger.py`
