@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: ReplicaSet
 metadata:
-  name: l2rTraining-workers
+  name: l2r-training-workers
   labels:
     tier: worker-set
 spec:
@@ -45,7 +45,7 @@ spec:
 apiVersion: v1
 kind: Pod
 metadata:
-  name: l2rTraining-learner
+  name: l2r-training-learner
   labels:
     app.kubernetes.io/name: proxy
 spec:
@@ -72,7 +72,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: l2rTraining-learner-service
+  name: l2r-training-learner-service
 spec:
   selector:
     app.kubernetes.io/name: proxy
