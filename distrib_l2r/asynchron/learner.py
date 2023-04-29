@@ -187,7 +187,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
                 batch = self.replay_buffer.sample_batch()
                 self.agent.update(data=batch)
 
-            print(f"Mean {sum((x.cpu().numpy()).mean() for x in self.agent.state_dict().values())} Std {sum((x.cpu().numpy()).std() for x in self.agent.state_dict().values())}")
+            # print(f"Mean {sum((x.cpu().numpy()).mean() for x in self.agent.state_dict().values())} Std {sum((x.cpu().numpy()).std() for x in self.agent.state_dict().values())}")
 
             # Update policy without blocking
             self.update_agent_queue()
