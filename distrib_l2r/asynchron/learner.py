@@ -9,10 +9,15 @@ from typing import Optional
 from typing import Tuple
 from tqdm import tqdm
 import socket
+import threading
+from copy import deepcopy
+import time
+import sys
+import os
 from src.agents.base import BaseAgent
 from src.config.yamlize import create_configurable, NameToSourcePath, yamlize
 from src.loggers.WanDBLogger import WanDBLogger
-
+from src.constants import Task
 
 from distrib_l2r.api import BufferMsg
 from distrib_l2r.api import InitMsg
@@ -20,6 +25,10 @@ from distrib_l2r.api import EvalResultsMsg
 from distrib_l2r.api import PolicyMsg
 from distrib_l2r.utils import receive_data
 from distrib_l2r.utils import send_data
+
+
+TIMING = False
+SEND_BATCH = 30
 
 
 class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
@@ -32,33 +41,18 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         # Received a replay buffer from a worker
         # Add this to buff
         if isinstance(msg, BufferMsg):
-            logging.info("Received replay buffer")
+            logging.info(
+                f"COLLECT | buffer size = {len(msg.data)}")
             self.server.buffer_queue.put(msg.data)
 
         # Received an init message from a worker
         # Immediately reply with the most up-to-date policy
         elif isinstance(msg, InitMsg):
-            logging.info("Received init message")
+            logging.info("INIT")
 
         # Received evaluation results from a worker
         elif isinstance(msg, EvalResultsMsg):
-            logging.warn("Received evaluation results message")
-            logging.warn(msg.data)
-            # self.server.wandb_logger.log(
-            #     (
-            #         msg.data["reward"],
-            #         msg.data["total_distance"],
-            #         msg.data["total_time"],
-            #         msg.data["num_infractions"],
-            #         msg.data["average_speed_kph"],
-            #         msg.data["average_displacement_error"],
-            #         msg.data["trajectory_efficiency"],
-            #         msg.data["trajectory_admissibility"],
-            #         msg.data["movement_smoothness"],
-            #         msg.data["timestep/sec"],
-            #         msg.data["laps_completed"],
-            #     )
-            # )
+            logging.warn(f"EVAL | message = {msg.data}")
 
             self.server.wandb_logger.log(
                 {
@@ -82,9 +76,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             return
 
         # Reply to the request with an up-to-date policy
-        send_data(data=PolicyMsg(data=self.server.get_agent_dict()), sock=self.request)
-
-
+        send_data(data=PolicyMsg(data=self.server.get_agent_dict()),
+                  sock=self.request)
 
 
 class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
@@ -106,9 +99,9 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         self,
         agent: BaseAgent,
         update_steps: int = 3000,
-        batch_size: int = 128, # Originally 128
-        epochs: int = 500, # Originally 500
-        buffer_size: int = 1_000_000, # Originally 1M
+        batch_size: int = 128,  # Originally 128
+        epochs: int = 500,  # Originally 500
+        buffer_size: int = 1_000_000,  # Originally 1M
         server_address: Tuple[str, int] = ("0.0.0.0", 4444),
         eval_prob: float = 0.20,
         save_func: Optional[Callable] = None,
@@ -134,7 +127,8 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
 
         # The bytes of the policy to reply to requests with
 
-        self.agent_params = {k: v.cpu() for k, v in self.agent.state_dict().items()}
+        self.agent_params = {k: v.cpu()
+                             for k, v in self.agent.state_dict().items()}
 
         # A thread-safe policy queue to avoid blocking while learning. This marginally
         # increases off-policy error in order to improve throughput.
@@ -144,7 +138,8 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         # main replay buffer
         self.buffer_queue = queue.LifoQueue()
 
-        self.wandb_logger = WanDBLogger(api_key=api_key, project_name="test-project")
+        self.wandb_logger = WanDBLogger(
+            api_key=api_key, project_name="test-project")
         # Save function, called optionally
         self.save_func = save_func
         self.save_freq = save_freq
@@ -173,14 +168,16 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
             except queue.Empty:
                 pass
 
-        self.agent_queue.put({k: v.cpu() for k, v in self.agent.state_dict().items()})
+        self.agent_queue.put({k: v.cpu()
+                             for k, v in self.agent.state_dict().items()})
         self.agent_id += 1
 
     def learn(self) -> None:
         """The thread where thread-safe gradient updates occur"""
-        for epoch in tqdm(range(self.epochs)):
+        while True:
             semibuffer = self.buffer_queue.get()
-            print(f"Received something {len(semibuffer)} vs {len(self.replay_buffer)}. {self.buffer_queue.qsize()} buffers remaining")
+            print(
+                f"Processing | Sampled Buffer = {len(semibuffer)} from Replay Buffer = {len(self.replay_buffer)}, where Buffer Queue = {self.buffer_queue.qsize()}")
             # Add new data to the primary replay buffer
             self.replay_buffer.store(semibuffer)
 
@@ -190,7 +187,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
                 self.agent.update(data=batch)
 
             print(f"Mean {sum((x.cpu().numpy()).mean() for x in self.agent.state_dict().values())} Std {sum((x.cpu().numpy()).std() for x in self.agent.state_dict().values())}")
-           
+
             # Update policy without blocking
             self.update_agent_queue()
             # Optionally save
@@ -202,3 +199,11 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         # Tries to ensure reuse. Might be wrong.
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.socket.bind(self.server_address)
+
+    def select_task(self):
+        if len(self.replay_buffer) < 2048:
+            # If replay buffer is empty, we need to collect more data
+            return Task.COLLECT
+        else:
+            weights = [0.5, 0.1, 0.4]
+            return random.choices([Task.TRAIN, Task.EVAL, Task.COLLECT], weights=weights)[0]
