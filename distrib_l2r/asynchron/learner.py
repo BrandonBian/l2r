@@ -26,6 +26,7 @@ from distrib_l2r.api import PolicyMsg
 from distrib_l2r.utils import receive_data
 from distrib_l2r.utils import send_data
 
+logging.getLogger('').setLevel(logging.INFO)
 
 TIMING = False
 SEND_BATCH = 30
@@ -52,7 +53,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
         # Received evaluation results from a worker
         elif isinstance(msg, EvalResultsMsg):
-            logging.warn(f"EVAL | message = {msg.data}")
+            logging.info(f"EVAL | message = {msg.data}")
 
             self.server.wandb_logger.log(
                 {
