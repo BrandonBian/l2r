@@ -118,7 +118,7 @@ class AsnycWorker:
                     reply=True
                 )
                 print(
-                    f"\n---\n{task} | Param. Ver. = {policy_id} | Collected Buffer = {len(buffer)} | Duration = {duration}\n---\n")
+                    f"\n---\n{task} | Param. Ver. = {policy_id} | Collected Buffer = {len(buffer)} | Duration = {round(duration, 4)} s\n---\n")
 
             elif task == Task.EVAL:
                 """ Evaluate parameters, send back reward (EvalResultsMsg) """
@@ -128,7 +128,7 @@ class AsnycWorker:
                     reply=True,
                 )
                 reward = result["reward"]
-                print(f"\n---\n{task} | Param. Ver. = {policy_id} | Reward = {reward} | Duration = {duration}\n---\n")
+                print(f"\n---\n{task} | Param. Ver. = {policy_id} | Reward = {reward} | Duration = {round(duration, 4)} s\n---\n")
 
             else:
                 """ Train parameters on the obtained replay buffers, send back updated parameters (ParameterMsg) """
@@ -137,7 +137,7 @@ class AsnycWorker:
 
                 duration = parameters["duration"]
                 print(
-                    f"\n---\n{task} | Param. Ver. = {policy_id} | Training time = {duration} s\n---\n")
+                    f"\n---\n{task} | Param. Ver. = {policy_id} | Training time = {round(duration, 4)} s\n---\n")
 
             policy_id, policy, task = response.data["policy_id"], response.data["policy"], response.data["task"]
 

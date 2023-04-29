@@ -162,9 +162,12 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         if task == Task.TRAIN:
             buffers_to_send = []
 
+            start = time.time()
             for _ in range(SEND_BATCH):
                 batch = self.replay_buffer.sample_batch()
                 buffers_to_send.append(batch)
+            if TIMING:
+                print(f"Preparation time: {round(time.time() - start, 4)} s")
 
             msg = {
                 "policy_id": self.agent_id,
@@ -210,7 +213,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
                 batch = self.replay_buffer.sample_batch()
                 self.agent.update(data=batch)
             if TIMING:
-                print(f"Update Time: {time.time() - start}")
+                print(f"Update Time: {round(time.time() - start, 4)}")
 
             # Update policy without blocking
             self.update_agent_queue()
