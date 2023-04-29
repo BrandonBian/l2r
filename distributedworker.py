@@ -12,7 +12,7 @@ import numpy as np
 import time
 
 
-learner_ip = socket.gethostbyname("l2rTraining-learner-service")
+learner_ip = socket.gethostbyname("l2r-training-learner-service")
 learner_address = (learner_ip, 4444)
 
 
