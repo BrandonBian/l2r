@@ -141,7 +141,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
 
         # A queue of buffers that have been received but not yet added to the learner's
         # main replay buffer
-        self.buffer_queue = queue.LifoQueue()
+        self.buffer_queue = queue.LifoQueue(30)
 
         self.wandb_logger = WanDBLogger(
             api_key=api_key, project_name="test-project")
@@ -231,5 +231,5 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
             # If replay buffer is empty, we need to collect more data
             return Task.COLLECT
         else:
-            weights = [0.0, 0.2, 0.8]
+            weights = [0.5, 0.2, 0.3]
             return random.choices([Task.TRAIN, Task.EVAL, Task.COLLECT], weights=weights)[0]
