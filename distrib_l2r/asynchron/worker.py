@@ -107,7 +107,7 @@ class AsnycWorker:
                 parameters = self.train(
                     policy_weights=policy, batches=response.data["replay_buffer"])
             else:
-                buffer, result = self.collect_data(
+                buffer, result, duration = self.collect_data(
                     policy_weights=policy, task=task)
 
             """ Send response back to learner """
@@ -119,7 +119,7 @@ class AsnycWorker:
                     reply=True
                 )
                 print(
-                    f"{task} | Param. Ver. = {policy_id} | Collected Buffer = {len(buffer)}")
+                    f"\n{task} | Param. Ver. = {policy_id} | Collected Buffer = {len(buffer)} | Duration = {duration}\n")
 
             elif task == Task.EVAL:
                 """ Evaluate parameters, send back reward (EvalResultsMsg) """
@@ -129,16 +129,16 @@ class AsnycWorker:
                     reply=True,
                 )
                 reward = result["reward"]
-                print(f"{task} | Param. Ver. = {policy_id} | Reward = {reward}")
+                print(f"\n{task} | Param. Ver. = {policy_id} | Reward = {reward} | Duration = {duration}\n")
 
             else:
                 """ Train parameters on the obtained replay buffers, send back updated parameters (ParameterMsg) """
                 response = send_data(
                     data=ParameterMsg(data=parameters), addr=self.learner_address, reply=True)
-                
+
                 duration = parameters["duration"]
-                logging.info(
-                    f"{task} | Param. Ver. = {policy_id} | Training time = {duration} s")
+                print(
+                    f"\n{task} | Param. Ver. = {policy_id} | Training time = {duration} s\n")
 
             policy_id, policy, task = response.data["policy_id"], response.data["policy"], response.data["task"]
 
@@ -146,8 +146,8 @@ class AsnycWorker:
         self, policy_weights: dict, task: Task
     ) -> Tuple[ReplayBuffer, Any]:
         """ Collect 1 episode of data (replay buffer OR reward) in the environment """
-        buffer, result = self.runner.run(self.env, policy_weights, task)
-        return buffer, result
+        buffer, result, duration = self.runner.run(self.env, policy_weights, task)
+        return buffer, result, duration
 
     def train(self, policy_weights: dict, batches: list):
         """ Perform update of the received parameters based on all the received batches """

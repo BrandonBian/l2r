@@ -42,6 +42,7 @@ class WorkerRunner(BaseRunner):
             agent (_type_): some agent
             task: eval / collect
         """
+        start = time.time()
         self.agent.load_model(agent_params)
 
         # Task.eval : deterministic (strictly following the parameters/policy)
@@ -79,7 +80,7 @@ class WorkerRunner(BaseRunner):
             state_encoded = next_state_encoded
 
         info["metrics"]["reward"] = ep_ret
-        return deepcopy(self.replay_buffer), info["metrics"]
+        return deepcopy(self.replay_buffer), info["metrics"], time.time() - start
 
     def train(self, agent_params, batches):
         start = time.time()
