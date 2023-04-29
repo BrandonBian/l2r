@@ -94,12 +94,11 @@ class AsnycWorker:
     def work(self) -> None:
         """Continously collect data"""
 
-        print("INIT")
+        print("\n---\nINIT\n---\n")
         response = send_data(
             data=InitMsg(), addr=self.learner_address, reply=True)
 
         policy_id, policy, task = response.data["policy_id"], response.data["policy"], response.data["task"]
-        print(f"{task} | Param. Ver. = {policy_id}")
 
         while True:
             """ Process request, collect data """
@@ -119,7 +118,7 @@ class AsnycWorker:
                     reply=True
                 )
                 print(
-                    f"\n{task} | Param. Ver. = {policy_id} | Collected Buffer = {len(buffer)} | Duration = {duration}\n")
+                    f"\n---\n{task} | Param. Ver. = {policy_id} | Collected Buffer = {len(buffer)} | Duration = {duration}\n---\n")
 
             elif task == Task.EVAL:
                 """ Evaluate parameters, send back reward (EvalResultsMsg) """
@@ -129,7 +128,7 @@ class AsnycWorker:
                     reply=True,
                 )
                 reward = result["reward"]
-                print(f"\n{task} | Param. Ver. = {policy_id} | Reward = {reward} | Duration = {duration}\n")
+                print(f"\n---\n{task} | Param. Ver. = {policy_id} | Reward = {reward} | Duration = {duration}\n---\n")
 
             else:
                 """ Train parameters on the obtained replay buffers, send back updated parameters (ParameterMsg) """
@@ -138,7 +137,7 @@ class AsnycWorker:
 
                 duration = parameters["duration"]
                 print(
-                    f"\n{task} | Param. Ver. = {policy_id} | Training time = {duration} s\n")
+                    f"\n---\n{task} | Param. Ver. = {policy_id} | Training time = {duration} s\n---\n")
 
             policy_id, policy, task = response.data["policy_id"], response.data["policy"], response.data["task"]
 
