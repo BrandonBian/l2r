@@ -43,7 +43,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         # Received a replay buffer from a worker
         # Add this to buff
         if isinstance(msg, BufferMsg):
-            print(f"COLLECT | buffer size = {len(msg.data)}")
+            print(f"COLLECT     | buffer size = {len(msg.data)}")
             self.server.buffer_queue.put(msg.data)
 
         # Received an init message from a worker
@@ -53,7 +53,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
         # Received evaluation results from a worker
         elif isinstance(msg, EvalResultsMsg):
-            print(f"EVAL | message = {msg.data}")
+            print(f"EVAL        | message = {msg.data}")
 
             self.server.wandb_logger.log(
                 {
@@ -200,7 +200,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         while True:
             semibuffer = self.buffer_queue.get()
             print(
-                f"Processing | Sampled Buffer = {len(semibuffer)} from Replay Buffer = {len(self.replay_buffer)}, where Buffer Queue = {self.buffer_queue.qsize()}")
+                f"Processing  | Sampled Buffer = {len(semibuffer)} from Replay Buffer = {len(self.replay_buffer)}, where Buffer Queue = {self.buffer_queue.qsize()}")
             # Add new data to the primary replay buffer
             self.replay_buffer.store(semibuffer)
 
