@@ -54,7 +54,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         # Received evaluation results from a worker
         elif isinstance(msg, EvalResultsMsg):
             print(f"EVAL        | message = {msg.data}")
-
+            print(self.server.agent_params)
             self.server.wandb_logger.log(
                 {
                     "reward": msg.data["reward"],
