@@ -5,7 +5,9 @@ from src.constants import DEVICE, Task
 
 from torch.optim import Adam
 import numpy as np
+import time
 from copy import deepcopy
+
 
 @yamlize
 class WorkerRunner(BaseRunner):
@@ -78,3 +80,14 @@ class WorkerRunner(BaseRunner):
 
         info["metrics"]["reward"] = ep_ret
         return deepcopy(self.replay_buffer), info["metrics"]
+
+    def train(self, agent_params, batches):
+        start = time.time()
+        self.agent.load_model(agent_params)
+        for batch in batches:
+            self.agent.update(batch)
+        parameters = {k: v.cpu()
+                      for k, v in self.agent.state_dict().items()}
+        duration = time.time() - start
+
+        return {'parameters': parameters, "duration": duration}

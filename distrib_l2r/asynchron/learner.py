@@ -43,7 +43,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         # Received a replay buffer from a worker
         # Add this to buff
         if isinstance(msg, BufferMsg):
-            print(f"COLLECT     | buffer size = {len(msg.data)}")
+            print(f"COLLECT     | Buffer Size = {len(msg.data)}")
             self.server.buffer_queue.put(msg.data)
 
         # Received an init message from a worker
@@ -53,7 +53,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
         # Received evaluation results from a worker
         elif isinstance(msg, EvalResultsMsg):
-            print(f"EVAL        | message = {msg.data}")
+            print(f"EVAL        | Message = {msg.data}")
             print(self.server.agent_params)
             self.server.wandb_logger.log(
                 {
@@ -74,7 +74,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         # Received trained parameters from a worker
         # Update current parameter with damping factors
         elif isinstance(msg, ParameterMsg):
-            pass
+            print(f"TRAIN       | Param. Mean = TODO, Param. Std = TODO")
+            # print(f"Mean {sum((x.cpu().numpy()).mean() for x in self.agent.state_dict().values())} Std {sum((x.cpu().numpy()).std() for x in self.agent.state_dict().values())}")
 
         # unexpected
         else:
@@ -208,8 +209,6 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
             for _ in range(self.update_steps):
                 batch = self.replay_buffer.sample_batch()
                 self.agent.update(data=batch)
-
-            # print(f"Mean {sum((x.cpu().numpy()).mean() for x in self.agent.state_dict().values())} Std {sum((x.cpu().numpy()).std() for x in self.agent.state_dict().values())}")
 
             # Update policy without blocking
             self.update_agent_queue()

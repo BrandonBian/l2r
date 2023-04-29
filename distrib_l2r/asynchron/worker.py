@@ -104,7 +104,8 @@ class AsnycWorker:
         while True:
             """ Process request, collect data """
             if task == Task.TRAIN:
-                pass
+                parameters = self.train(
+                    policy_weights=policy, batches=response.data["replay_buffer"])
             else:
                 buffer, result = self.collect_data(
                     policy_weights=policy, task=task)
@@ -132,7 +133,12 @@ class AsnycWorker:
 
             else:
                 """ Train parameters on the obtained replay buffers, send back updated parameters (ParameterMsg) """
-                pass
+                response = send_data(
+                    data=ParameterMsg(data=parameters), addr=self.learner_address, reply=True)
+                
+                duration = parameters["duration"]
+                logging.info(
+                    f"{task} | Param. Ver. = {policy_id} | Training time = {duration} s")
 
             policy_id, policy, task = response.data["policy_id"], response.data["policy"], response.data["task"]
 
@@ -142,3 +148,8 @@ class AsnycWorker:
         """ Collect 1 episode of data (replay buffer OR reward) in the environment """
         buffer, result = self.runner.run(self.env, policy_weights, task)
         return buffer, result
+
+    def train(self, policy_weights: dict, batches: list):
+        """ Perform update of the received parameters based on all the received batches """
+        parameters = self.runner.train(policy_weights, batches)
+        return parameters
