@@ -18,5 +18,5 @@ learner_address = (learner_ip, 4444)
 
 if __name__ == "__main__":
     worker = AsnycWorker(learner_address=learner_address)
-    print("Worker inited!!!")
+    print("--- Worker Initialized ---")
     worker.work()

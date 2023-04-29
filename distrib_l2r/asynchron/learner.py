@@ -23,6 +23,7 @@ from distrib_l2r.api import BufferMsg
 from distrib_l2r.api import InitMsg
 from distrib_l2r.api import EvalResultsMsg
 from distrib_l2r.api import PolicyMsg
+from distrib_l2r.api import ParameterMsg
 from distrib_l2r.utils import receive_data
 from distrib_l2r.utils import send_data
 
@@ -70,6 +71,11 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                 }
             )
 
+        # Received trained parameters from a worker
+        # Update current parameter with damping factors
+        elif isinstance(msg, ParameterMsg):
+            pass
+
         # unexpected
         else:
             logging.warning(f"Received unexpected data: {type(msg)}")
@@ -103,7 +109,6 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         epochs: int = 500,  # Originally 500
         buffer_size: int = 1_000_000,  # Originally 1M
         server_address: Tuple[str, int] = ("0.0.0.0", 4444),
-        eval_prob: float = 0.20,
         save_func: Optional[Callable] = None,
         save_freq: Optional[int] = None,
         api_key: str = "",
@@ -113,7 +118,6 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         self.update_steps = update_steps
         self.batch_size = batch_size
         self.epochs = epochs
-        self.eval_prob = eval_prob
 
         # Create a replay buffer
         self.buffer_size = buffer_size
@@ -153,11 +157,29 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
                 # non-blocking
                 pass
 
-        return {
-            "policy_id": self.agent_id,
-            "policy": self.agent_params,
-            "is_train": random.random() >= self.eval_prob,
-        }
+        task = self.select_task()
+
+        if task == Task.TRAIN:
+            buffers_to_send = []
+
+            for _ in range(SEND_BATCH):
+                batch = self.replay_buffer.sample_batch()
+                buffers_to_send.append(batch)
+
+            msg = {
+                "policy_id": self.agent_id,
+                "policy": self.agent_params,
+                "replay_buffer": buffers_to_send,
+                "task": task
+            }
+        else:
+            msg = {
+                "policy_id": self.agent_id,
+                "policy": self.agent_params,
+                "task": task
+            }
+
+        return msg
 
     def update_agent_queue(self) -> None:
         """Update policy that will be sent to workers without blocking"""
@@ -207,5 +229,5 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
             # If replay buffer is empty, we need to collect more data
             return Task.COLLECT
         else:
-            weights = [0.5, 0.1, 0.4]
+            weights = [0.0, 0.2, 0.8]
             return random.choices([Task.TRAIN, Task.EVAL, Task.COLLECT], weights=weights)[0]

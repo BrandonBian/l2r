@@ -1,10 +1,11 @@
 from src.runners.base import BaseRunner
 
 from src.config.yamlize import create_configurable, NameToSourcePath, yamlize
-from src.constants import DEVICE
+from src.constants import DEVICE, Task
 
 from torch.optim import Adam
 import numpy as np
+from copy import deepcopy
 
 @yamlize
 class WorkerRunner(BaseRunner):
@@ -26,36 +27,40 @@ class WorkerRunner(BaseRunner):
         self.buffer_config_path = buffer_config_path
         self.max_episode_length = max_episode_length
 
-        ## AGENT Declaration
-        self.agent = create_configurable(self.agent_config_path, NameToSourcePath.agent)
+        # AGENT Declaration
+        self.agent = create_configurable(
+            self.agent_config_path, NameToSourcePath.agent)
 
-    def run(self, env, agent_params, is_train):
+    def run(self, env, agent_params, task):
         """Grab data for system that's needed, and send a buffer accordingly. Note: does a single 'episode'
            which might not be more than a segment in l2r's case.
 
         Args:
             env (_type_): _description_
             agent (_type_): some agent
-            is_train: Whether to collect data in train mode or eval mode
+            task: eval / collect
         """
         self.agent.load_model(agent_params)
-                   
-        self.agent.deterministic = not is_train
+
+        # Task.eval : deterministic (strictly following the parameters/policy)
+        # Task.collect : non-deterministic (willingly explore the space with randomness)
+        self.agent.deterministic = (task == Task.EVAL)
         t = 0
         done = False
         state_encoded = env.reset()
 
         ep_ret = 0
         self.replay_buffer = create_configurable(
-                self.buffer_config_path, NameToSourcePath.buffer
-            )
+            self.buffer_config_path, NameToSourcePath.buffer
+        )
 
         while not done:
             t += 1
-            #print(f't:{t}')
+
             action_obj = self.agent.select_action(state_encoded)
-            next_state_encoded, reward, done, info = env.step(action_obj.action)
-            # print(f'info{info}')
+            next_state_encoded, reward, done, info = env.step(
+                action_obj.action)
+
             ep_ret += reward
             self.replay_buffer.store(
                 {
@@ -70,8 +75,6 @@ class WorkerRunner(BaseRunner):
                 self.replay_buffer.finish_path(action_obj)
 
             state_encoded = next_state_encoded
-        from copy import deepcopy
 
         info["metrics"]["reward"] = ep_ret
-        print(info["metrics"])
         return deepcopy(self.replay_buffer), info["metrics"]

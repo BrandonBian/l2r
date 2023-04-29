@@ -17,7 +17,9 @@ from tianshou.env import DummyVectorEnv
 from distrib_l2r.api import BufferMsg
 from distrib_l2r.api import EvalResultsMsg
 from distrib_l2r.api import InitMsg
+from distrib_l2r.api import ParameterMsg
 from distrib_l2r.utils import send_data
+from src.constants import Task
 
 from l2r import build_env
 
@@ -43,30 +45,28 @@ class AsnycWorker:
         self.mean_reward = 0.0
 
         self.env = build_env(controller_kwargs={"quiet": True},
-           env_kwargs=
-                   {
-                       "multimodal": True,
-                       "eval_mode": True,
-                       "n_eval_laps": 5,
-                       "max_timesteps": 5000,
-                       "obs_delay": 0.1,
-                       "not_moving_timeout": 50000,
-                       "reward_pol": "custom",
-                       "provide_waypoints": False,
-                       "active_sensors": [
-                           "CameraFrontRGB"
-                       ],
-                       "vehicle_params":False,
-                   },
-           action_cfg=
-                   {
-                       "ip": "0.0.0.0",
-                       "port": 7077,
-                       "max_steer": 0.3,
-                       "min_steer": -0.3,
-                       "max_accel": 6.0,
-                       "min_accel": -1,
-                   },
+                             env_kwargs={
+            "multimodal": True,
+            "eval_mode": True,
+            "n_eval_laps": 5,
+            "max_timesteps": 5000,
+            "obs_delay": 0.1,
+            "not_moving_timeout": 50000,
+            "reward_pol": "custom",
+            "provide_waypoints": False,
+            "active_sensors": [
+                "CameraFrontRGB"
+            ],
+            "vehicle_params": False,
+        },
+            action_cfg={
+            "ip": "0.0.0.0",
+            "port": 7077,
+            "max_steer": 0.3,
+            "min_steer": -0.3,
+            "max_accel": 6.0,
+            "min_accel": -1,
+        },
             camera_cfg=[
                 {
                     "name": "CameraFrontRGB",
@@ -75,58 +75,70 @@ class AsnycWorker:
                     "Height": 384,
                     "sim_addr": "tcp://0.0.0.0:8008",
                 }
-            ]
-                   )
+        ]
+        )
 
         self.encoder = create_configurable(
             "config_files/async_sac/encoder.yaml", NameToSourcePath.encoder
         )
         self.encoder.to(DEVICE)
 
-        self.env.action_space = gym.spaces.Box(np.array([-1, -1]), np.array([1.0, 1.0]))
+        self.env.action_space = gym.spaces.Box(
+            np.array([-1, -1]), np.array([1.0, 1.0]))
         self.env = EnvContainer(self.encoder, self.env)
 
         self.runner = create_configurable(
             "config_files/async_sac/worker.yaml", NameToSourcePath.runner
         )
-        # print(self.env.action_space)
 
     def work(self) -> None:
         """Continously collect data"""
 
-        is_train = True
-        logging.warn("Trying to send data.")
-        response = send_data(data=InitMsg(), addr=self.learner_address, reply=True)
-        policy_id, policy = response.data["policy_id"], response.data["policy"]
+        print("INIT")
+        response = send_data(
+            data=InitMsg(), addr=self.learner_address, reply=True)
+
+        policy_id, policy, task = response.data["policy_id"], response.data["policy"], response.data["task"]
+        print(f"{task} | Param. Ver. = {policy_id}")
 
         while True:
-            buffer, result = self.collect_data(policy_weights=policy, is_train=is_train)
-            logging.warn("Data collection finished! Sending.")
-
-            if is_train:
-                response = send_data(
-                    data=BufferMsg(data=buffer), addr=self.learner_address, reply=True
-                )
-                logging.warn("Sent!")
-
+            """ Process request, collect data """
+            if task == Task.TRAIN:
+                pass
             else:
-                self.mean_reward = self.mean_reward * (0.2) + result["reward"] * 0.8
-                logging.warn(f"reward: {self.mean_reward}")
+                buffer, result = self.collect_data(
+                    policy_weights=policy, task=task)
+
+            """ Send response back to learner """
+            if task == Task.COLLECT:
+                """ Collect data, send back replay buffer (BufferMsg) """
+                response = send_data(
+                    data=BufferMsg(data=buffer),
+                    addr=self.learner_address,
+                    reply=True
+                )
+                print(
+                    f"{task} | Param. Ver. = {policy_id} | Collected Buffer = {len(buffer)}")
+
+            elif task == Task.EVAL:
+                """ Evaluate parameters, send back reward (EvalResultsMsg) """
                 response = send_data(
                     data=EvalResultsMsg(data=result),
                     addr=self.learner_address,
                     reply=True,
                 )
-                logging.warn("Sent!")
+                reward = result["reward"]
+                print(f"{task} | Param. Ver. = {policy_id} | Reward = {reward}")
 
-            is_train = response.data["is_train"]
-            policy_id, policy = response.data["policy_id"], response.data["policy"]
+            else:
+                """ Train parameters on the obtained replay buffers, send back updated parameters (ParameterMsg) """
+                pass
+
+            policy_id, policy, task = response.data["policy_id"], response.data["policy"], response.data["task"]
 
     def collect_data(
-        self, policy_weights: dict, is_train: bool = True
+        self, policy_weights: dict, task: Task
     ) -> Tuple[ReplayBuffer, Any]:
-        """Collect 1 episode of data in the environment"""
-        
-        buffer, result = self.runner.run(self.env, policy_weights, is_train)
-
+        """ Collect 1 episode of data (replay buffer OR reward) in the environment """
+        buffer, result = self.runner.run(self.env, policy_weights, task)
         return buffer, result
