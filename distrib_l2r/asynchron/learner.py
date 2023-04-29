@@ -30,7 +30,7 @@ from distrib_l2r.utils import send_data
 logging.getLogger('').setLevel(logging.INFO)
 
 TIMING = True
-SEND_BATCH = 30
+SEND_BATCH = 3000
 
 
 class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
