@@ -29,7 +29,7 @@ from distrib_l2r.utils import send_data
 
 logging.getLogger('').setLevel(logging.INFO)
 
-TIMING = False
+TIMING = True
 SEND_BATCH = 30
 
 
@@ -206,9 +206,12 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
             self.replay_buffer.store(semibuffer)
 
             # Learning steps for the policy
+            start = time.time()
             for _ in range(self.update_steps):
                 batch = self.replay_buffer.sample_batch()
                 self.agent.update(data=batch)
+            if TIMING:
+                print(f"Update Time: {time.time() - start}")
 
             # Update policy without blocking
             self.update_agent_queue()
