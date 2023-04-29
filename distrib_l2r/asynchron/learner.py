@@ -42,18 +42,17 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         # Received a replay buffer from a worker
         # Add this to buff
         if isinstance(msg, BufferMsg):
-            logging.info(
-                f"COLLECT | buffer size = {len(msg.data)}")
+            print(f"COLLECT | buffer size = {len(msg.data)}")
             self.server.buffer_queue.put(msg.data)
 
         # Received an init message from a worker
         # Immediately reply with the most up-to-date policy
         elif isinstance(msg, InitMsg):
-            logging.info("INIT")
+            print("INIT")
 
         # Received evaluation results from a worker
         elif isinstance(msg, EvalResultsMsg):
-            logging.info(f"EVAL | message = {msg.data}")
+            print(f"EVAL | message = {msg.data}")
 
             self.server.wandb_logger.log(
                 {
@@ -175,6 +174,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
 
     def learn(self) -> None:
         """The thread where thread-safe gradient updates occur"""
+        epoch = 0
         while True:
             semibuffer = self.buffer_queue.get()
             print(
@@ -194,6 +194,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
             # Optionally save
             if self.save_func and epoch % self.save_every == 0:
                 self.save_fn(epoch=epoch, policy=self.get_policy_dict())
+            epoch += 1
 
     def server_bind(self):
         # From https://stackoverflow.com/questions/6380057/python-binding-socket-address-already-in-use/18858817#18858817.
