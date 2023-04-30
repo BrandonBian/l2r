@@ -30,7 +30,7 @@ from distrib_l2r.utils import send_data
 logging.getLogger('').setLevel(logging.INFO)
 
 TIMING = True
-SEND_BATCH = 1000
+SEND_BATCH = 100
 
 
 class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
@@ -73,8 +73,26 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         # Received trained parameters from a worker
         # Update current parameter with damping factors
         elif isinstance(msg, ParameterMsg):
-            print(f"TRAIN       | Param. Mean = TODO, Param. Std = TODO")
-            # print(f"Mean {sum((x.cpu().numpy()).mean() for x in self.agent.state_dict().values())} Std {sum((x.cpu().numpy()).std() for x in self.agent.state_dict().values())}")
+            new_parameters = msg.data["parameters"]
+            current_parameters = {k: v.cpu()
+                                  for k, v in self.server.agent.state_dict().items()}
+
+            assert set(current_parameters.keys()) == set(
+                new_parameters.keys()), "Parameters from worker not matching learner's!"
+
+            # Loop through the keys of the dictionaries and update the values of old_dict using the damping formula
+            alpha = 0.8
+            for key in current_parameters:
+                old_value = current_parameters[key]
+                new_value = new_parameters[key]
+                updated_value = alpha * old_value + (1 - alpha) * new_value
+                current_parameters[key] = updated_value
+
+            self.server.agent.load_model(current_parameters)
+            self.server.update_agent()
+
+            print(
+                f"TRAIN       | Param. Mean = {sum((x.cpu().numpy()).mean() for x in current_parameters.values())}, Param. Std = {sum((x.cpu().numpy()).std() for x in current_parameters.values())}")
 
         # unexpected
         else:
@@ -201,6 +219,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         """The thread where thread-safe gradient updates occur"""
         epoch = 0
         while True:
+            print(f"Epoch - {epoch}")
             semibuffer = self.buffer_queue.get()
             print(
                 f"Processing  | Sampled Buffer = {len(semibuffer)} from Replay Buffer = {len(self.replay_buffer)}, where Buffer Queue = {self.buffer_queue.qsize()}")
