@@ -122,7 +122,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
     def __init__(
         self,
         agent: BaseAgent,
-        update_steps: int = 3000,
+        update_steps: int = 100,
         batch_size: int = 128,  # Originally 128
         epochs: int = 500,  # Originally 500
         buffer_size: int = 1_000_000,  # Originally 1M
