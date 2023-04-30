@@ -89,7 +89,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                 current_parameters[key] = updated_value
 
             self.server.agent.load_model(current_parameters)
-            self.server.update_agent()
+            self.server.update_agent_queue()
 
             print(
                 f"TRAIN       | Param. Mean = {sum((x.cpu().numpy()).mean() for x in current_parameters.values())}, Param. Std = {sum((x.cpu().numpy()).std() for x in current_parameters.values())}")
