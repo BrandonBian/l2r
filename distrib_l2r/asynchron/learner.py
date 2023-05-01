@@ -222,7 +222,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         while True:
             semibuffer = self.buffer_queue.get()
             print(
-                f"Processing  | Epoch = {epoch} -> Sampled Buffer = {len(semibuffer)} from Replay Buffer = {len(self.replay_buffer)}, where Buffer Queue = {self.buffer_queue.qsize()}")
+                f"Sampling    | Epoch = {epoch} -> Sampled Buffer = {len(semibuffer)} from Replay Buffer = {len(self.replay_buffer)}, where Buffer Queue = {self.buffer_queue.qsize()}")
             # Add new data to the primary replay buffer
             self.replay_buffer.store(semibuffer)
             epoch += 1
