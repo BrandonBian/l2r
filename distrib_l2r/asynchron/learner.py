@@ -29,8 +29,7 @@ from distrib_l2r.utils import send_data
 
 logging.getLogger('').setLevel(logging.INFO)
 
-TIMING = True
-SEND_BATCH = 100
+SEND_BATCH = 300
 
 
 class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
@@ -100,8 +99,10 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             return
 
         # Reply to the request with an up-to-date policy
+        start = time.time()
         send_data(data=PolicyMsg(data=self.server.get_agent_dict()),
                   sock=self.request)
+        print(f"Timing      | Data sending time: {round(time.time() - start, 4)} s")
 
 
 class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
@@ -184,8 +185,8 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
             for _ in range(SEND_BATCH):
                 batch = self.replay_buffer.sample_batch()
                 buffers_to_send.append(batch)
-            if TIMING:
-                print(f"Preparation time: {round(time.time() - start, 4)} s")
+            
+            print(f"Timing      | Data preparation time: {round(time.time() - start, 4)} s")
 
             msg = {
                 "policy_id": self.agent_id,
@@ -219,26 +220,11 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         """The thread where thread-safe gradient updates occur"""
         epoch = 0
         while True:
-            print(f"Epoch - {epoch}")
             semibuffer = self.buffer_queue.get()
             print(
-                f"Processing  | Sampled Buffer = {len(semibuffer)} from Replay Buffer = {len(self.replay_buffer)}, where Buffer Queue = {self.buffer_queue.qsize()}")
+                f"Processing  | Epoch = {epoch} -> Sampled Buffer = {len(semibuffer)} from Replay Buffer = {len(self.replay_buffer)}, where Buffer Queue = {self.buffer_queue.qsize()}")
             # Add new data to the primary replay buffer
             self.replay_buffer.store(semibuffer)
-
-            # Learning steps for the policy
-            start = time.time()
-            for _ in range(self.update_steps):
-                batch = self.replay_buffer.sample_batch()
-                self.agent.update(data=batch)
-            if TIMING:
-                print(f"Update Time: {round(time.time() - start, 4)}")
-
-            # Update policy without blocking
-            self.update_agent_queue()
-            # Optionally save
-            if self.save_func and epoch % self.save_every == 0:
-                self.save_fn(epoch=epoch, policy=self.get_policy_dict())
             epoch += 1
 
     def server_bind(self):
@@ -252,5 +238,5 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
             # If replay buffer is empty, we need to collect more data
             return Task.COLLECT
         else:
-            weights = [0.5, 0.2, 0.3]
+            weights = [0.5, 0.1, 0.4]
             return random.choices([Task.TRAIN, Task.EVAL, Task.COLLECT], weights=weights)[0]
