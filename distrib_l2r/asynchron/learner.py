@@ -42,7 +42,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         # Received a replay buffer from a worker
         # Add this to buff
         if isinstance(msg, BufferMsg):
-            print(f"COLLECT     | Buffer Size = {len(msg.data)}")
+            print(f"[COLLECT]   | Buffer Size = {len(msg.data)}")
             self.server.buffer_queue.put(msg.data)
 
         # Received an init message from a worker
@@ -52,7 +52,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
         # Received evaluation results from a worker
         elif isinstance(msg, EvalResultsMsg):
-            print(f"EVAL        | Message = {msg.data}")
+            print(f"[EVAL]      | Message = {msg.data}")
             self.server.wandb_logger.log(
                 {
                     "reward": msg.data["reward"],
@@ -91,7 +91,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             self.server.update_agent_queue()
 
             print(
-                f"TRAIN       | Param. Mean = {sum((x.cpu().numpy()).mean() for x in current_parameters.values())}, Param. Std = {sum((x.cpu().numpy()).std() for x in current_parameters.values())}")
+                f"[TRAIN]     | Param. Mean = {sum((x.cpu().numpy()).mean() for x in current_parameters.values())}, Param. Std = {sum((x.cpu().numpy()).std() for x in current_parameters.values())}")
 
         # unexpected
         else:
@@ -100,9 +100,11 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
         # Reply to the request with an up-to-date policy
         start = time.time()
-        send_data(data=PolicyMsg(data=self.server.get_agent_dict()),
+        msg = self.server.get_agent_dict()
+        send_data(data=PolicyMsg(data=msg),
                   sock=self.request)
-        print(f"Timing      | Data sending time: {round(time.time() - start, 4)} s")
+        if msg["task"] == Task.TRAIN:
+            print(f"Timing      | Data sending time: {round(time.time() - start, 4)} s")
 
 
 class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
