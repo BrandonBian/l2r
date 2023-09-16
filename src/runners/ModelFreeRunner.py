@@ -130,7 +130,7 @@ class ModelFreeRunner(BaseRunner):
                 api_key=self.api_key, project_name="test-project"
             )"""
 
-    def run(self, env, api_key: str = ""):
+    def run(self, env, api_key: str = "173e38ab5f2f2d96c260f57c989b4d068b64fb8a"):
         """Train an agent, with our given parameters, on the environment in question.
 
         Args:
@@ -140,7 +140,7 @@ class ModelFreeRunner(BaseRunner):
         self.wandb_logger = None
         if api_key:
             self.wandb_logger = WanDBLogger(
-                api_key=api_key, project_name="test-project"
+                api_key=api_key, project_name="l2r"
             )
         t = 0
         start_idx = self.last_saved_episode

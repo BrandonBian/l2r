@@ -54,7 +54,7 @@ if __name__ == "__main__":
         import torch
 
         torch.autograd.set_detect_anomaly(True)
-        runner.run(env, sys.argv[3])
+        runner.run(env, "173e38ab5f2f2d96c260f57c989b4d068b64fb8a")
     except IndexError as e:
         logging.warning(e)
         runner.run(env, "")

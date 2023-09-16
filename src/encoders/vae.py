@@ -94,8 +94,6 @@ class VAE(BaseEncoder, torch.nn.Module):
         # assume x is RGB image with shape (H, W, 3)
         h = crop_resize_center(x).unsqueeze(0)
         v = self.representation(h)
-
-        # Return dimension: (batch_size, self.z_dim)
         return v
 
     def distribution(self, x, device=DEVICE):
@@ -114,8 +112,6 @@ class VAE(BaseEncoder, torch.nn.Module):
     def decode(self, z):
         z = self.fc3(z)
         return self.decoder(z)
-        # Output: (batch_size, C, H, W)
-
 
     def forward(self, x):
         # expects (N, H, W, C)
